@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+// Use environment variable or default to production API
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://biala-books-api.onrender.com/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -32,4 +35,3 @@ api.interceptors.response.use(
 );
 
 export default api;
-
