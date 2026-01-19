@@ -63,96 +63,113 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center hero-pattern overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-20 left-10 w-64 h-64 bg-gold-400/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-gold-500/10 rounded-full blur-3xl"></div>
+      {/* Hero Section - Modern & Compact */}
+      <section className="relative min-h-[70vh] flex items-center overflow-hidden bg-gradient-to-br from-cream-50 via-cream-100 to-gold-50">
+        {/* Modern geometric background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-gold-400/20 to-transparent rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-navy-900/5 to-transparent rounded-full blur-2xl"></div>
+          <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-gradient-radial from-gold-300/10 to-transparent rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+        </div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 relative">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left content */}
             <motion.div 
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="space-y-8"
+              transition={{ duration: 0.6 }}
+              className="space-y-6"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold-100 border border-gold-300">
-                <Sparkles size={16} className="text-gold-600" />
-                <span className="text-sm font-medium text-gold-800">Torah Teachings of the Mevaser Tov</span>
-              </div>
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-gold-100 to-gold-50 border border-gold-200/50 backdrop-blur-sm"
+              >
+                <Sparkles size={14} className="text-gold-600" />
+                <span className="text-xs font-medium text-gold-800 tracking-wide">Torah Teachings of the Mevaser Tov</span>
+              </motion.div>
 
-              <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
-                <span className="text-gradient-dark">Illuminating</span>
+              <h1 className="font-display text-4xl md:text-5xl font-bold leading-tight">
+                <span className="bg-gradient-to-r from-navy-900 via-navy-800 to-navy-900 bg-clip-text text-transparent">Illuminating</span>
                 <br />
-                <span className="text-gradient">Sacred Wisdom</span>
+                <span className="bg-gradient-to-r from-gold-600 via-gold-500 to-gold-600 bg-clip-text text-transparent">Sacred Wisdom</span>
               </h1>
 
-              <p className="text-xl text-navy-700 leading-relaxed max-w-xl">
+              <p className="text-base text-navy-600 leading-relaxed max-w-md">
                 Discover the profound Torah teachings of the Biala Rebbe, 
-                the <span className="font-hebrew text-gold-700">מבשר טוב</span>, 
-                bringing the light of Chassidus to generations of Jews worldwide.
+                the <span className="font-hebrew text-gold-700 font-semibold">מבשר טוב</span>, 
+                bringing the light of Chassidus to Jews worldwide.
               </p>
 
-              <div className="flex flex-wrap gap-4">
-                <Link to="/books" className="btn-primary inline-flex items-center gap-2">
-                  <BookOpen size={18} />
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Link to="/books" className="group px-6 py-2.5 rounded-xl font-display font-semibold text-sm bg-gradient-to-r from-navy-900 to-navy-800 text-gold-400 hover:from-navy-800 hover:to-navy-700 transition-all shadow-lg shadow-navy-900/20 inline-flex items-center gap-2">
+                  <BookOpen size={16} />
                   Explore Books
+                  <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <Link to="/about/rebbe" className="btn-secondary inline-flex items-center gap-2">
-                  Learn About the Rebbe
-                  <ArrowRight size={18} />
+                <Link to="/about/rebbe" className="px-6 py-2.5 rounded-xl font-display font-semibold text-sm border-2 border-gold-400 text-gold-700 hover:bg-gold-400 hover:text-navy-900 transition-all inline-flex items-center gap-2">
+                  About the Rebbe
                 </Link>
               </div>
 
-              {/* Stats */}
-              <div className="flex flex-wrap gap-8 pt-8 border-t border-cream-300">
-                <div>
-                  <div className="font-display text-3xl font-bold text-gold-600">25+</div>
-                  <div className="text-navy-600 text-sm">Published Volumes</div>
-                </div>
-                <div>
-                  <div className="font-display text-3xl font-bold text-gold-600">150+</div>
-                  <div className="text-navy-600 text-sm">Years of Dynasty</div>
-                </div>
-                <div>
-                  <div className="font-display text-3xl font-bold text-gold-600">Global</div>
-                  <div className="text-navy-600 text-sm">Community</div>
-                </div>
+              {/* Stats - Compact */}
+              <div className="flex gap-6 pt-6">
+                {[
+                  { value: '25+', label: 'Volumes' },
+                  { value: '150+', label: 'Years' },
+                  { value: 'Global', label: 'Community' },
+                ].map((stat, i) => (
+                  <motion.div 
+                    key={stat.label}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 + i * 0.1 }}
+                    className="text-center"
+                  >
+                    <div className="font-display text-2xl font-bold bg-gradient-to-b from-gold-600 to-gold-700 bg-clip-text text-transparent">{stat.value}</div>
+                    <div className="text-navy-500 text-xs uppercase tracking-wider">{stat.label}</div>
+                  </motion.div>
+                ))}
               </div>
             </motion.div>
 
-            {/* Right - Rebbe Image */}
+            {/* Right - Rebbe Image - Smaller */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative"
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="relative flex justify-center lg:justify-end"
             >
-              <div className="relative">
-                {/* Ornate frame */}
-                <div className="absolute -inset-4 bg-gradient-to-br from-gold-300 via-gold-400 to-gold-600 rounded-3xl transform rotate-2 opacity-30"></div>
-                <div className="absolute -inset-4 bg-gradient-to-br from-gold-400 to-gold-600 rounded-3xl transform -rotate-1 opacity-20"></div>
+              <div className="relative w-72 md:w-80">
+                {/* Modern frame effect */}
+                <div className="absolute -inset-3 bg-gradient-to-br from-gold-400 via-gold-500 to-gold-600 rounded-2xl opacity-20 blur-xl"></div>
+                <div className="absolute -inset-1 bg-gradient-to-br from-gold-300 to-gold-500 rounded-2xl opacity-30"></div>
                 
-                <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-gold-400">
-                  <img
-                    src="/images/rebbe-mevaser-tov.jpg"
-                    alt="The Mevaser Tov of Biala"
-                    className="w-full h-auto"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = 'https://placehold.co/500x600/1A2035/C9A008?text=Mevaser+Tov';
-                    }}
-                  />
+                <div className="relative rounded-xl overflow-hidden shadow-2xl ring-1 ring-gold-400/50">
+                  <div className="aspect-[3/4] bg-gradient-to-br from-navy-800 to-navy-950 flex items-center justify-center">
+                    <div className="text-center p-6">
+                      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center">
+                        <span className="font-hebrew text-3xl font-bold text-navy-950">מט</span>
+                      </div>
+                      <p className="font-hebrew text-gold-400 text-lg">המבשר טוב</p>
+                      <p className="font-hebrew text-gold-500/70 text-sm mt-1">זיע״א</p>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Caption */}
-                <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 glass rounded-lg px-6 py-3 shadow-lg">
-                  <p className="font-hebrew text-lg text-navy-900 text-center">
-                    כ״ק אדמו״ר המבשר טוב זי״ע
+                {/* Floating badge */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-md rounded-lg px-4 py-2 shadow-xl border border-gold-200"
+                >
+                  <p className="font-hebrew text-sm text-navy-900 whitespace-nowrap">
+                    כ״ק אדמו״ר מביאלא
                   </p>
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           </div>

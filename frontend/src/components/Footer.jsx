@@ -3,7 +3,7 @@ import { BookOpen, Mail, Phone, MapPin, Facebook, Youtube, Send } from 'lucide-r
 
 export default function Footer() {
   return (
-    <footer className="bg-gradient-to-br from-navy-900 via-navy-950 to-navy-900 text-cream-200">
+    <footer className="bg-navy-950 text-cream-200">
       {/* Main footer content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">

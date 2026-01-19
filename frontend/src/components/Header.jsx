@@ -53,17 +53,13 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-gold-400 shadow-lg">
-              <img 
-                src="/images/logo.png" 
-                alt="Biala Publishing" 
-                className="w-full h-full object-contain bg-cream-50 p-1"
-              />
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gold-400 via-gold-500 to-gold-600 flex items-center justify-center shadow-lg shadow-gold-500/20">
+              <span className="font-hebrew text-2xl font-bold text-navy-950">ב</span>
             </div>
             <div className="hidden sm:block">
-              <h1 className="font-display text-xl font-bold text-gradient">Biala Publishing</h1>
-              <p className="text-xs text-navy-600 font-hebrew">הוצאת ספרים ביאלא</p>
+              <h1 className="font-display text-lg font-bold bg-gradient-to-r from-navy-900 to-navy-700 bg-clip-text text-transparent">Biala Publishing</h1>
+              <p className="text-[10px] text-gold-600 font-hebrew tracking-wider">הוצאת ספרים ביאלא</p>
             </div>
           </Link>
 
