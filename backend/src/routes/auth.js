@@ -75,18 +75,15 @@ router.post('/request-code', async (req, res) => {
       console.error(`❌ Email failed: ${err.message}`);
     }
 
-    // Always return success with code in dev mode or if email failed
-    const isDev = process.env.NODE_ENV !== 'production';
-    const showCode = isDev || !emailSent;
-    
+    // Always show code for now (debugging)
     res.json({ 
       message: emailSent 
         ? 'Verification code sent to your email' 
         : 'Verification code generated (check below)',
       emailSent,
       emailError: emailError || undefined,
-      // Show code if email wasn't sent or in dev mode
-      ...(showCode && { devCode: code })
+      // Always show code for debugging
+      devCode: code
     });
     
   } catch (error) {
