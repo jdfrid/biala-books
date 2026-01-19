@@ -1,276 +1,179 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, MessageSquare, Facebook, Share2, Image, Link, CheckCircle, Clock } from 'lucide-react';
+import { Send, MessageCircle, Facebook, Twitter, Check, AlertCircle } from 'lucide-react';
 
 export default function AdminSocial() {
-  const [content, setContent] = useState('');
-  const [selectedPlatforms, setSelectedPlatforms] = useState([]);
-  const [imageUrl, setImageUrl] = useState('');
-  const [linkUrl, setLinkUrl] = useState('');
-  const [scheduling, setScheduling] = useState(false);
-  const [scheduleDate, setScheduleDate] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  const platforms = [
-    { id: 'telegram', name: 'Telegram', icon: Send, color: 'bg-blue-500', connected: true },
-    { id: 'whatsapp', name: 'WhatsApp', icon: MessageSquare, color: 'bg-green-500', connected: true },
-    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'bg-blue-600', connected: false },
-  ];
-
-  const recentPosts = [
-    { id: 1, content: 'New book release announcement...', platforms: ['telegram', 'whatsapp'], date: '2026-01-18', status: 'sent' },
-    { id: 2, content: 'Shabbos times and parsha sheet...', platforms: ['telegram'], date: '2026-01-17', status: 'sent' },
-    { id: 3, content: 'Upcoming event reminder...', platforms: ['telegram', 'whatsapp', 'facebook'], date: '2026-01-20', status: 'scheduled' },
-  ];
-
-  const togglePlatform = (id) => {
-    if (selectedPlatforms.includes(id)) {
-      setSelectedPlatforms(selectedPlatforms.filter(p => p !== id));
-    } else {
-      setSelectedPlatforms([...selectedPlatforms, id]);
-    }
-  };
+  const [message, setMessage] = useState('');
+  const [platforms, setPlatforms] = useState({
+    telegram: true,
+    whatsapp: true,
+    facebook: false
+  });
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (!message.trim()) return;
 
+    setSending(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
-
-    setSuccess(true);
-    setLoading(false);
-
-    setTimeout(() => {
-      setSuccess(false);
-      setContent('');
-      setImageUrl('');
-      setLinkUrl('');
-      setSelectedPlatforms([]);
-      setScheduling(false);
-      setScheduleDate('');
-    }, 2000);
+    setSending(false);
+    setSent(true);
+    setTimeout(() => setSent(false), 3000);
+    setMessage('');
   };
+
+  const platformConfig = [
+    { key: 'telegram', name: 'Telegram', icon: MessageCircle, color: 'bg-blue-500' },
+    { key: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: 'bg-green-500' },
+    { key: 'facebook', name: 'Facebook', icon: Facebook, color: 'bg-blue-600' }
+  ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-3xl font-bold text-navy-900">Social Distribution</h1>
-        <p className="text-navy-600">Share updates to Telegram, WhatsApp, and Facebook</p>
+        <h1 className="text-2xl font-bold text-gray-900">Social Distribution</h1>
+        <p className="text-gray-500">Send updates to your social channels</p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Compose */}
+        {/* Message Form */}
         <div className="lg:col-span-2">
-          <div className="card p-6">
-            <h2 className="font-display text-xl font-bold text-navy-900 mb-6">
-              Compose Message
-            </h2>
-
-            {success ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-                  <CheckCircle size={32} className="text-green-600" />
-                </div>
-                <h3 className="font-display text-xl font-bold text-navy-900 mb-2">
-                  {scheduling ? 'Post Scheduled!' : 'Posted Successfully!'}
-                </h3>
-                <p className="text-navy-600">
-                  Your message has been {scheduling ? 'scheduled for' : 'sent to'} {selectedPlatforms.length} platform(s).
-                </p>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 className="font-semibold text-gray-900 mb-4">Compose Message</h2>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Write your update message here..."
+                  className="form-input resize-none"
+                  rows={6}
+                  required
+                />
+                <div className="text-right text-sm text-gray-400 mt-1">{message.length} / 500</div>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Platform Selection */}
-                <div>
-                  <label className="block text-navy-700 text-sm font-medium mb-3">
-                    Select Platforms
-                  </label>
-                  <div className="flex flex-wrap gap-3">
-                    {platforms.map((platform) => (
-                      <button
-                        key={platform.id}
-                        type="button"
-                        onClick={() => platform.connected && togglePlatform(platform.id)}
-                        disabled={!platform.connected}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${
-                          selectedPlatforms.includes(platform.id)
-                            ? 'border-gold-500 bg-gold-50'
-                            : platform.connected
-                              ? 'border-cream-300 hover:border-gold-300'
-                              : 'border-cream-200 bg-cream-100 opacity-50 cursor-not-allowed'
-                        }`}
-                      >
-                        <div className={`w-8 h-8 rounded-full ${platform.color} flex items-center justify-center`}>
-                          <platform.icon size={16} className="text-white" />
-                        </div>
-                        <span className="font-medium text-navy-900">{platform.name}</span>
-                        {!platform.connected && (
-                          <span className="text-xs text-navy-500">(Not connected)</span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
 
-                {/* Message Content */}
-                <div>
-                  <label className="block text-navy-700 text-sm font-medium mb-2">
-                    Message *
-                  </label>
-                  <textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="form-input min-h-[150px]"
-                    placeholder="Write your message here..."
-                    required
-                  />
-                  <p className="text-navy-500 text-xs mt-1">{content.length} characters</p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Send To</label>
+                <div className="flex flex-wrap gap-3">
+                  {platformConfig.map((platform) => (
+                    <button
+                      key={platform.key}
+                      type="button"
+                      onClick={() => setPlatforms({ ...platforms, [platform.key]: !platforms[platform.key] })}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all ${
+                        platforms[platform.key]
+                          ? 'border-amber-500 bg-amber-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className={`w-8 h-8 rounded-lg ${platform.color} flex items-center justify-center`}>
+                        <platform.icon size={16} className="text-white" />
+                      </div>
+                      <span className="font-medium text-gray-700">{platform.name}</span>
+                      {platforms[platform.key] && <Check size={16} className="text-amber-500" />}
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                {/* Image URL */}
-                <div>
-                  <label className="block text-navy-700 text-sm font-medium mb-2">
-                    <Image size={16} className="inline mr-1" />
-                    Image URL (optional)
-                  </label>
-                  <input
-                    type="url"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    className="form-input"
-                    placeholder="https://..."
-                  />
-                </div>
-
-                {/* Link URL */}
-                <div>
-                  <label className="block text-navy-700 text-sm font-medium mb-2">
-                    <Link size={16} className="inline mr-1" />
-                    Link URL (optional)
-                  </label>
-                  <input
-                    type="url"
-                    value={linkUrl}
-                    onChange={(e) => setLinkUrl(e.target.value)}
-                    className="form-input"
-                    placeholder="https://..."
-                  />
-                </div>
-
-                {/* Schedule Option */}
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={scheduling}
-                      onChange={(e) => setScheduling(e.target.checked)}
-                      className="w-5 h-5 rounded border-cream-300 text-gold-500"
-                    />
-                    <span className="text-navy-700">Schedule for later</span>
-                  </label>
-                  {scheduling && (
-                    <input
-                      type="datetime-local"
-                      value={scheduleDate}
-                      onChange={(e) => setScheduleDate(e.target.value)}
-                      className="form-input max-w-xs"
-                      required={scheduling}
-                    />
-                  )}
-                </div>
-
-                {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={loading || selectedPlatforms.length === 0 || !content}
-                  className="btn-primary w-full flex items-center justify-center gap-2"
+              {sent && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-xl"
                 >
-                  {loading ? (
-                    <span className="w-5 h-5 border-2 border-navy-950/30 border-t-navy-950 rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Share2 size={18} />
-                      {scheduling ? 'Schedule Post' : 'Post Now'}
-                    </>
-                  )}
-                </button>
-              </form>
-            )}
+                  <Check size={20} />
+                  Message sent successfully to selected platforms!
+                </motion.div>
+              )}
+
+              <button
+                type="submit"
+                disabled={sending || !Object.values(platforms).some(Boolean)}
+                className="btn-gold w-full py-3"
+              >
+                {sending ? (
+                  <span className="w-5 h-5 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Send size={18} />
+                    Send Update
+                  </>
+                )}
+              </button>
+            </form>
           </div>
         </div>
 
-        {/* Sidebar */}
+        {/* Platform Settings */}
         <div className="space-y-6">
-          {/* Connected Accounts */}
-          <div className="card p-6">
-            <h3 className="font-display text-lg font-bold text-navy-900 mb-4">
-              Connected Accounts
-            </h3>
-            <div className="space-y-3">
-              {platforms.map((platform) => (
-                <div key={platform.id} className="flex items-center justify-between">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h2 className="font-semibold text-gray-900 mb-4">Platform Settings</h2>
+            <div className="space-y-4">
+              {platformConfig.map((platform) => (
+                <div key={platform.key} className="flex items-center justify-between p-3 rounded-xl bg-gray-50">
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full ${platform.color} flex items-center justify-center`}>
-                      <platform.icon size={14} className="text-white" />
+                    <div className={`w-10 h-10 rounded-lg ${platform.color} flex items-center justify-center`}>
+                      <platform.icon size={20} className="text-white" />
                     </div>
-                    <span className="text-navy-900">{platform.name}</span>
+                    <div>
+                      <div className="font-medium text-gray-900">{platform.name}</div>
+                      <div className="text-xs text-gray-500">
+                        {platform.key === 'telegram' && 'Bot connected'}
+                        {platform.key === 'whatsapp' && 'Group linked'}
+                        {platform.key === 'facebook' && 'Page connected'}
+                      </div>
+                    </div>
                   </div>
-                  {platform.connected ? (
-                    <span className="badge badge-success">Connected</span>
-                  ) : (
-                    <button className="text-gold-600 text-sm hover:text-gold-700">
-                      Connect
-                    </button>
-                  )}
+                  <div className={`w-3 h-3 rounded-full ${platforms[platform.key] ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Recent Posts */}
-          <div className="card p-6">
-            <h3 className="font-display text-lg font-bold text-navy-900 mb-4">
-              Recent Posts
-            </h3>
-            <div className="space-y-4">
-              {recentPosts.map((post) => (
-                <div key={post.id} className="pb-4 border-b border-cream-200 last:border-0 last:pb-0">
-                  <p className="text-navy-700 text-sm line-clamp-2 mb-2">{post.content}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      {post.platforms.map((p) => {
-                        const platform = platforms.find(pl => pl.id === p);
-                        return platform ? (
-                          <div 
-                            key={p}
-                            className={`w-5 h-5 rounded-full ${platform.color} flex items-center justify-center`}
-                          >
-                            <platform.icon size={10} className="text-white" />
-                          </div>
-                        ) : null;
-                      })}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {post.status === 'scheduled' ? (
-                        <span className="badge badge-warning flex items-center gap-1">
-                          <Clock size={10} />
-                          Scheduled
-                        </span>
-                      ) : (
-                        <span className="badge badge-success">Sent</span>
-                      )}
-                      <span className="text-navy-500 text-xs">{post.date}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+          <div className="bg-amber-50 rounded-2xl p-6 border border-amber-200">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="text-amber-600 shrink-0 mt-0.5" size={20} />
+              <div>
+                <h3 className="font-medium text-amber-800 mb-1">Configuration Required</h3>
+                <p className="text-sm text-amber-700">
+                  To enable social distribution, configure API keys and tokens in the Settings page.
+                </p>
+              </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Recent Posts */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <h2 className="font-semibold text-gray-900 mb-4">Recent Posts</h2>
+        <div className="space-y-4">
+          {[
+            { message: 'New book release announcement!', platforms: ['telegram', 'whatsapp'], date: '2026-01-18 14:30' },
+            { message: 'Shabbos schedule update for this week', platforms: ['telegram'], date: '2026-01-17 10:00' },
+            { message: 'Registration open for annual gathering', platforms: ['telegram', 'whatsapp', 'facebook'], date: '2026-01-15 09:00' },
+          ].map((post, i) => (
+            <div key={i} className="flex items-start justify-between p-4 rounded-xl bg-gray-50">
+              <div className="flex-1">
+                <p className="text-gray-900">{post.message}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  {post.platforms.map((p) => (
+                    <span key={p} className="px-2 py-0.5 rounded-full text-xs bg-gray-200 text-gray-600">{p}</span>
+                  ))}
+                </div>
+              </div>
+              <span className="text-sm text-gray-500">{post.date}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 }
-

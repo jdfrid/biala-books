@@ -44,8 +44,8 @@ export default function AdminLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-navy-950">
-        <div className="w-8 h-8 border-2 border-gold-400/30 border-t-gold-400 rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="w-8 h-8 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -64,11 +64,11 @@ export default function AdminLayout() {
   );
 
   return (
-    <div className="min-h-screen flex bg-cream-100">
+    <div className="min-h-screen flex bg-gray-100">
       {/* Sidebar overlay (mobile) */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-navy-950/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-gray-900/50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -76,7 +76,7 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50 w-64 
-        bg-gradient-to-b from-navy-900 via-navy-950 to-navy-900 
+        bg-gradient-to-b from-gray-800 via-gray-900 to-gray-800 
         transform transition-transform duration-300
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
@@ -84,19 +84,19 @@ export default function AdminLayout() {
           {/* Logo */}
           <div className="flex items-center justify-between px-2 py-4 mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center">
-                <BookOpen size={20} className="text-navy-950" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                <BookOpen size={20} className="text-gray-900" />
               </div>
               <div>
-                <div className="font-display font-semibold text-gold-400">Admin Panel</div>
-                <div className="text-xs text-cream-500">Biala Publishing</div>
+                <div className="font-display font-semibold text-amber-400">Admin Panel</div>
+                <div className="text-xs text-gray-400">Biala Publishing</div>
               </div>
             </div>
             <button 
-              className="lg:hidden p-1 rounded hover:bg-navy-800"
+              className="lg:hidden p-1 rounded hover:bg-gray-700"
               onClick={() => setSidebarOpen(false)}
             >
-              <X size={20} className="text-cream-400" />
+              <X size={20} className="text-gray-300" />
             </button>
           </div>
 
@@ -109,10 +109,10 @@ export default function AdminLayout() {
                 end={item.exact}
                 onClick={() => setSidebarOpen(false)}
                 className={({ isActive }) => `
-                  flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
+                  flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
                   ${isActive 
-                    ? 'bg-gold-500/20 text-gold-400 border-l-3 border-gold-500' 
-                    : 'text-cream-400 hover:bg-navy-800 hover:text-gold-400'
+                    ? 'bg-amber-500/20 text-amber-400' 
+                    : 'text-gray-400 hover:bg-gray-700 hover:text-amber-400'
                   }
                 `}
               >
@@ -123,21 +123,21 @@ export default function AdminLayout() {
           </nav>
 
           {/* User info & Logout */}
-          <div className="border-t border-navy-700 pt-4 mt-4">
+          <div className="border-t border-gray-700 pt-4 mt-4">
             <div className="flex items-center gap-3 px-2 py-3">
-              <div className="w-10 h-10 rounded-full bg-navy-700 flex items-center justify-center">
-                <span className="text-gold-400 font-semibold">
+              <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+                <span className="text-amber-400 font-semibold">
                   {user?.name?.charAt(0).toUpperCase() || 'A'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-cream-200 font-medium truncate">{user?.name || 'Admin'}</div>
-                <div className="text-xs text-cream-500 capitalize">{user?.role || 'admin'}</div>
+                <div className="text-gray-200 font-medium truncate">{user?.name || 'Admin'}</div>
+                <div className="text-xs text-gray-500 capitalize">{user?.role || 'admin'}</div>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
             >
               <LogOut size={20} />
               <span className="text-sm font-medium">Sign Out</span>
@@ -149,10 +149,10 @@ export default function AdminLayout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Header */}
-        <header className="h-16 bg-cream-50 border-b border-cream-200 flex items-center px-4 lg:px-6 sticky top-0 z-30">
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center px-4 lg:px-6 sticky top-0 z-30">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden p-2 rounded-lg hover:bg-cream-200"
+            className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
           >
             <Menu size={24} />
           </button>
@@ -163,7 +163,7 @@ export default function AdminLayout() {
             href="/" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-sm text-navy-500 hover:text-gold-600 transition-colors"
+            className="text-sm text-gray-500 hover:text-amber-600 transition-colors"
           >
             View Public Site →
           </a>
@@ -177,4 +177,3 @@ export default function AdminLayout() {
     </div>
   );
 }
-

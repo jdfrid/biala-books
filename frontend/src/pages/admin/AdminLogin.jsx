@@ -70,10 +70,10 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-900 via-navy-950 to-navy-900 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 px-4">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-64 h-64 bg-gold-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-20 w-80 h-80 bg-gold-400/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-20 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-amber-400/10 rounded-full blur-3xl"></div>
       </div>
 
       <motion.div
@@ -81,34 +81,34 @@ export default function AdminLogin() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md relative"
       >
-        <div className="card p-8 md:p-10">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-10">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center">
-              <BookOpen size={32} className="text-navy-950" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+              <BookOpen size={32} className="text-gray-900" />
             </div>
-            <h1 className="font-display text-2xl font-bold text-navy-900">Admin Portal</h1>
-            <p className="text-navy-600 text-sm mt-1">Biala Publishing</p>
+            <h1 className="font-display text-2xl font-bold text-gray-900">Admin Portal</h1>
+            <p className="text-gray-500 text-sm mt-1">Biala Publishing</p>
           </div>
 
           {step === 'email' ? (
             <>
               <div className="text-center mb-6">
-                <h2 className="font-display text-xl font-bold text-navy-900 mb-2">
+                <h2 className="font-display text-xl font-bold text-gray-900 mb-2">
                   Sign In
                 </h2>
-                <p className="text-navy-600 text-sm">
+                <p className="text-gray-500 text-sm">
                   Enter your email to receive a verification code
                 </p>
               </div>
 
               <form onSubmit={handleEmailSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-navy-700 text-sm font-medium mb-2">
+                  <label className="block text-gray-700 text-sm font-medium mb-2">
                     Email Address
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-navy-400" size={18} />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input
                       type="email"
                       value={email}
@@ -127,10 +127,10 @@ export default function AdminLogin() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn-primary w-full flex items-center justify-center gap-2"
+                  className="btn-gold w-full py-3 flex items-center justify-center gap-2"
                 >
                   {loading ? (
-                    <span className="w-5 h-5 border-2 border-navy-950/30 border-t-navy-950 rounded-full animate-spin" />
+                    <span className="w-5 h-5 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin" />
                   ) : (
                     <>
                       Continue
@@ -143,21 +143,21 @@ export default function AdminLogin() {
           ) : (
             <>
               <div className="text-center mb-6">
-                <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gold-100 flex items-center justify-center">
-                  <Shield size={24} className="text-gold-600" />
+                <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
+                  <Shield size={24} className="text-amber-600" />
                 </div>
-                <h2 className="font-display text-xl font-bold text-navy-900 mb-2">
+                <h2 className="font-display text-xl font-bold text-gray-900 mb-2">
                   Verify Your Identity
                 </h2>
-                <p className="text-navy-600 text-sm">
+                <p className="text-gray-500 text-sm">
                   We've sent a 6-digit code to<br />
-                  <span className="font-semibold text-navy-800">{email}</span>
+                  <span className="font-semibold text-gray-800">{email}</span>
                 </p>
               </div>
 
               <form onSubmit={handleCodeSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-navy-700 text-sm font-medium mb-3 text-center">
+                  <label className="block text-gray-700 text-sm font-medium mb-3 text-center">
                     Enter Verification Code
                   </label>
                   <div className="flex justify-center gap-2">
@@ -169,7 +169,7 @@ export default function AdminLogin() {
                         value={digit}
                         onChange={(e) => handleCodeChange(index, e.target.value)}
                         onKeyDown={(e) => handleCodeKeyDown(index, e)}
-                        className="w-12 h-14 text-center text-2xl font-bold rounded-lg border-2 border-cream-300 focus:border-gold-400 focus:ring-2 focus:ring-gold-200 outline-none transition-all"
+                        className="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-gray-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-200 outline-none transition-all"
                         maxLength={1}
                         autoFocus={index === 0}
                       />
@@ -184,10 +184,10 @@ export default function AdminLogin() {
                 <button
                   type="submit"
                   disabled={loading || code.join('').length !== 6}
-                  className="btn-primary w-full flex items-center justify-center gap-2"
+                  className="btn-gold w-full py-3 flex items-center justify-center gap-2"
                 >
                   {loading ? (
-                    <span className="w-5 h-5 border-2 border-navy-950/30 border-t-navy-950 rounded-full animate-spin" />
+                    <span className="w-5 h-5 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin" />
                   ) : (
                     <>
                       <Key size={18} />
@@ -204,19 +204,19 @@ export default function AdminLogin() {
                       setCode(['', '', '', '', '', '']);
                       setError('');
                     }}
-                    className="text-gold-600 text-sm hover:text-gold-700"
+                    className="text-amber-600 text-sm hover:text-amber-700"
                   >
                     Use a different email
                   </button>
                 </div>
 
-                <div className="text-center text-navy-500 text-sm">
+                <div className="text-center text-gray-500 text-sm">
                   Didn't receive the code?{' '}
                   <button
                     type="button"
                     onClick={handleEmailSubmit}
                     disabled={loading}
-                    className="text-gold-600 hover:text-gold-700 font-medium"
+                    className="text-amber-600 hover:text-amber-700 font-medium"
                   >
                     Resend
                   </button>
@@ -226,11 +226,10 @@ export default function AdminLogin() {
           )}
         </div>
 
-        <p className="text-center text-cream-600 text-xs mt-6">
+        <p className="text-center text-gray-400 text-xs mt-6">
           Protected by two-factor authentication
         </p>
       </motion.div>
     </div>
   );
 }
-

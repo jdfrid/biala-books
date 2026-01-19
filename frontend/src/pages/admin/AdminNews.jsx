@@ -1,21 +1,20 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit, Trash2, Eye, X, Upload, Calendar, Star } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, X, Save, Calendar } from 'lucide-react';
 import api from '../../services/api';
 
 export default function AdminNews() {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     excerpt: '',
     content: '',
-    category: 'General',
-    featured: false,
-    date: new Date().toISOString().split('T')[0],
+    category: 'Announcements',
+    featured: false
   });
 
   useEffect(() => {
@@ -24,66 +23,62 @@ export default function AdminNews() {
 
   const fetchNews = async () => {
     try {
-      const res = await api.get('/admin/news');
+      const res = await api.get('/news');
       setNews(res.data.news || []);
-    } catch (error) {
-      setNews(placeholderNews);
+    } catch (err) {
+      setNews([
+        { id: 1, title: 'New Volume Released', category: 'Publications', date: '2026-01-15', featured: true },
+        { id: 2, title: 'Annual Gathering Announced', category: 'Events', date: '2026-01-10', featured: true },
+        { id: 3, title: 'Sponsorship Opportunity', category: 'Announcements', date: '2026-01-05', featured: false },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
-  const placeholderNews = [
-    { id: 1, title: 'New Volume Released', category: 'Publications', date: '2026-01-15', featured: true, views: 234 },
-    { id: 2, title: 'Annual Gathering Announced', category: 'Events', date: '2026-01-10', featured: true, views: 189 },
-    { id: 3, title: 'Sponsorship Opportunity', category: 'Opportunities', date: '2026-01-05', featured: false, views: 156 },
-    { id: 4, title: 'New Kollel Opened', category: 'Community', date: '2025-12-20', featured: false, views: 123 },
-  ];
-
-  const displayNews = news.length > 0 ? news : placeholderNews;
-
-  const filteredNews = displayNews.filter(item =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingItem) {
-        await api.put(`/admin/news/${editingItem.id}`, formData);
+        await api.put(`/news/${editingItem.id}`, formData);
       } else {
-        await api.post('/admin/news', formData);
+        await api.post('/news', formData);
       }
       fetchNews();
       closeModal();
-    } catch (error) {
-      console.error('Error saving news:', error);
+    } catch (err) {
+      console.error('Error saving news:', err);
     }
   };
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this news item?')) return;
     try {
-      await api.delete(`/admin/news/${id}`);
+      await api.delete(`/news/${id}`);
       fetchNews();
-    } catch (error) {
-      console.error('Error deleting news:', error);
+    } catch (err) {
+      console.error('Error deleting news:', err);
     }
   };
 
   const openModal = (item = null) => {
     if (item) {
       setEditingItem(item);
-      setFormData(item);
+      setFormData({
+        title: item.title,
+        excerpt: item.excerpt || '',
+        content: item.content || '',
+        category: item.category || 'Announcements',
+        featured: item.featured || false
+      });
     } else {
       setEditingItem(null);
       setFormData({
         title: '',
         excerpt: '',
         content: '',
-        category: 'General',
-        featured: false,
-        date: new Date().toISOString().split('T')[0],
+        category: 'Announcements',
+        featured: false
       });
     }
     setShowModal(true);
@@ -94,106 +89,77 @@ export default function AdminNews() {
     setEditingItem(null);
   };
 
+  const filteredNews = news.filter(item =>
+    item.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold text-navy-900">News & Updates</h1>
-          <p className="text-navy-600">Manage news articles and announcements</p>
+          <h1 className="text-2xl font-bold text-gray-900">News & Updates</h1>
+          <p className="text-gray-500">Manage announcements and news articles</p>
         </div>
-        <button onClick={() => openModal()} className="btn-primary flex items-center gap-2">
-          <Plus size={18} />
+        <button onClick={() => openModal()} className="btn-gold">
+          <Plus size={20} />
           Add News
         </button>
       </div>
 
       <div className="relative max-w-md">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-navy-400" size={20} />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
         <input
           type="text"
           placeholder="Search news..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="form-input pl-12"
         />
       </div>
 
-      <div className="card overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="admin-table">
+          <table className="w-full">
             <thead>
-              <tr>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Date</th>
-                <th>Featured</th>
-                <th>Views</th>
-                <th>Actions</th>
+              <tr className="bg-gray-50">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Title</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Category</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-100">
               {loading ? (
-                [...Array(4)].map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td><div className="h-6 bg-cream-200 rounded w-48"></div></td>
-                    <td><div className="h-6 bg-cream-200 rounded w-20"></div></td>
-                    <td><div className="h-6 bg-cream-200 rounded w-24"></div></td>
-                    <td><div className="h-6 bg-cream-200 rounded w-16"></div></td>
-                    <td><div className="h-6 bg-cream-200 rounded w-12"></div></td>
-                    <td><div className="h-6 bg-cream-200 rounded w-24"></div></td>
-                  </tr>
-                ))
-              ) : filteredNews.length > 0 ? (
+                <tr><td colSpan={5} className="px-6 py-12 text-center text-gray-400">Loading...</td></tr>
+              ) : filteredNews.length === 0 ? (
+                <tr><td colSpan={5} className="px-6 py-12 text-center text-gray-400">No news found</td></tr>
+              ) : (
                 filteredNews.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <div className="font-semibold text-navy-900">{item.title}</div>
+                  <tr key={item.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 font-medium text-gray-900">{item.title}</td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">{item.category}</span>
                     </td>
-                    <td>
-                      <span className="badge badge-info">{item.category}</span>
+                    <td className="px-6 py-4 text-gray-600 flex items-center gap-2">
+                      <Calendar size={14} />
+                      {item.date}
                     </td>
-                    <td>
-                      <span className="flex items-center gap-1 text-navy-600">
-                        <Calendar size={14} />
-                        {item.date}
-                      </span>
+                    <td className="px-6 py-4">
+                      {item.featured && <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700">Featured</span>}
                     </td>
-                    <td>
-                      {item.featured && (
-                        <Star size={16} className="text-gold-500" fill="currentColor" />
-                      )}
-                    </td>
-                    <td>{item.views || 0}</td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => window.open(`/news/${item.id}`, '_blank')}
-                          className="p-2 rounded-lg hover:bg-cream-200 transition-colors"
-                        >
-                          <Eye size={16} className="text-navy-600" />
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => openModal(item)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-amber-600">
+                          <Edit size={18} />
                         </button>
-                        <button
-                          onClick={() => openModal(item)}
-                          className="p-2 rounded-lg hover:bg-cream-200 transition-colors"
-                        >
-                          <Edit size={16} className="text-navy-600" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="p-2 rounded-lg hover:bg-red-100 transition-colors"
-                        >
-                          <Trash2 size={16} className="text-red-600" />
+                        <button onClick={() => handleDelete(item.id)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-red-600">
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     </td>
                   </tr>
                 ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="text-center py-8 text-navy-500">
-                    No news items found
-                  </td>
-                </tr>
               )}
             </tbody>
           </table>
@@ -201,104 +167,41 @@ export default function AdminNews() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/60">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-cream-50 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-2xl font-bold text-navy-900">
-                {editingItem ? 'Edit News' : 'Add News'}
-              </h2>
-              <button onClick={closeModal} className="p-2 rounded-lg hover:bg-cream-200">
-                <X size={20} />
-              </button>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">{editingItem ? 'Edit News' : 'Add News'}</h2>
+              <button onClick={closeModal} className="p-2 rounded-lg hover:bg-gray-100"><X size={20} /></button>
             </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-navy-700 text-sm font-medium mb-2">Title *</label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="form-input"
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="form-input" required />
               </div>
-
               <div>
-                <label className="block text-navy-700 text-sm font-medium mb-2">Excerpt *</label>
-                <textarea
-                  value={formData.excerpt}
-                  onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                  className="form-input min-h-[80px]"
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Excerpt</label>
+                <textarea value={formData.excerpt} onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })} className="form-input resize-none" rows={2} />
               </div>
-
               <div>
-                <label className="block text-navy-700 text-sm font-medium mb-2">Full Content *</label>
-                <textarea
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  className="form-input min-h-[200px]"
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                <textarea value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} className="form-input resize-none" rows={5} />
               </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-navy-700 text-sm font-medium mb-2">Category</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="form-input"
-                  >
-                    <option value="General">General</option>
-                    <option value="Publications">Publications</option>
-                    <option value="Events">Events</option>
-                    <option value="Community">Community</option>
-                    <option value="Opportunities">Opportunities</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-navy-700 text-sm font-medium mb-2">Date</label>
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="form-input"
-                  />
-                </div>
-              </div>
-
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.featured}
-                  onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                  className="w-5 h-5 rounded border-cream-300 text-gold-500 focus:ring-gold-400"
-                />
-                <span className="text-navy-700">Featured article</span>
-              </label>
-
               <div>
-                <label className="block text-navy-700 text-sm font-medium mb-2">Cover Image</label>
-                <div className="border-2 border-dashed border-cream-300 rounded-lg p-8 text-center">
-                  <Upload size={32} className="mx-auto text-navy-400 mb-2" />
-                  <p className="text-navy-600 text-sm">Click or drag to upload image</p>
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="form-input">
+                  <option value="Announcements">Announcements</option>
+                  <option value="Publications">Publications</option>
+                  <option value="Events">Events</option>
+                  <option value="Community">Community</option>
+                </select>
               </div>
-
-              <div className="flex gap-4 pt-4">
-                <button type="button" onClick={closeModal} className="btn-secondary flex-1">
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary flex-1">
-                  {editingItem ? 'Update' : 'Publish'}
-                </button>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="featured" checked={formData.featured} onChange={(e) => setFormData({ ...formData, featured: e.target.checked })} className="w-4 h-4 rounded border-gray-300 text-amber-600" />
+                <label htmlFor="featured" className="text-sm text-gray-700">Featured article</label>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button type="button" onClick={closeModal} className="btn-secondary flex-1">Cancel</button>
+                <button type="submit" className="btn-gold flex-1"><Save size={18} />Save</button>
               </div>
             </form>
           </motion.div>
@@ -307,4 +210,3 @@ export default function AdminNews() {
     </div>
   );
 }
-

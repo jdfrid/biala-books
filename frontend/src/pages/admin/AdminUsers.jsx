@@ -1,19 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit, Trash2, Shield, User, X } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, X, Save, Users, Shield, Mail } from 'lucide-react';
 import api from '../../services/api';
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: 'editor',
-  });
+  const [formData, setFormData] = useState({ name: '', email: '', role: 'editor' });
 
   useEffect(() => {
     fetchUsers();
@@ -23,25 +19,15 @@ export default function AdminUsers() {
     try {
       const res = await api.get('/admin/users');
       setUsers(res.data.users || []);
-    } catch (error) {
-      setUsers(placeholderUsers);
+    } catch (err) {
+      setUsers([
+        { id: 1, name: 'Admin User', email: 'admin@bialapublishing.com', role: 'admin', lastLogin: '2026-01-18' },
+        { id: 2, name: 'Editor User', email: 'editor@bialapublishing.com', role: 'editor', lastLogin: '2026-01-17' },
+      ]);
     } finally {
       setLoading(false);
     }
   };
-
-  const placeholderUsers = [
-    { id: 1, name: 'Admin User', email: 'admin@bialapublishing.com', role: 'admin', lastLogin: '2026-01-18', status: 'active' },
-    { id: 2, name: 'Content Editor', email: 'editor@bialapublishing.com', role: 'editor', lastLogin: '2026-01-17', status: 'active' },
-    { id: 3, name: 'Media Manager', email: 'media@bialapublishing.com', role: 'editor', lastLogin: '2026-01-15', status: 'active' },
-  ];
-
-  const displayUsers = users.length > 0 ? users : placeholderUsers;
-
-  const filteredUsers = displayUsers.filter(user =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,18 +39,18 @@ export default function AdminUsers() {
       }
       fetchUsers();
       closeModal();
-    } catch (error) {
-      console.error('Error saving user:', error);
+    } catch (err) {
+      console.error('Error saving user:', err);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to remove this admin user?')) return;
+    if (!confirm('Delete this admin user?')) return;
     try {
       await api.delete(`/admin/users/${id}`);
       fetchUsers();
-    } catch (error) {
-      console.error('Error deleting user:', error);
+    } catch (err) {
+      console.error('Error deleting user:', err);
     }
   };
 
@@ -84,208 +70,112 @@ export default function AdminUsers() {
     setEditingUser(null);
   };
 
+  const filteredUsers = users.filter(u =>
+    u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold text-navy-900">Admin Users</h1>
-          <p className="text-navy-600">Manage system administrators and editors</p>
+          <h1 className="text-2xl font-bold text-gray-900">Admin Users</h1>
+          <p className="text-gray-500">Manage admin access</p>
         </div>
-        <button onClick={() => openModal()} className="btn-primary flex items-center gap-2">
-          <Plus size={18} />
+        <button onClick={() => openModal()} className="btn-gold">
+          <Plus size={20} />
           Add User
         </button>
       </div>
 
       <div className="relative max-w-md">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-navy-400" size={20} />
-        <input
-          type="text"
-          placeholder="Search users..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="form-input pl-12"
-        />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+        <input type="text" placeholder="Search users..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-input pl-12" />
       </div>
 
-      <div className="card overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="admin-table">
+          <table className="w-full">
             <thead>
-              <tr>
-                <th>User</th>
-                <th>Role</th>
-                <th>Last Login</th>
-                <th>Status</th>
-                <th>Actions</th>
+              <tr className="bg-gray-50">
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">User</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Role</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Last Login</th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-100">
               {loading ? (
-                [...Array(3)].map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td><div className="h-6 bg-cream-200 rounded w-40"></div></td>
-                    <td><div className="h-6 bg-cream-200 rounded w-20"></div></td>
-                    <td><div className="h-6 bg-cream-200 rounded w-24"></div></td>
-                    <td><div className="h-6 bg-cream-200 rounded w-20"></div></td>
-                    <td><div className="h-6 bg-cream-200 rounded w-24"></div></td>
-                  </tr>
-                ))
-              ) : filteredUsers.length > 0 ? (
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">Loading...</td></tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">No users found</td></tr>
+              ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.id}>
-                    <td>
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gold-100 flex items-center justify-center">
-                          {user.role === 'admin' ? (
-                            <Shield size={18} className="text-gold-600" />
-                          ) : (
-                            <User size={18} className="text-gold-600" />
-                          )}
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold">
+                          {user.name.charAt(0)}
                         </div>
                         <div>
-                          <div className="font-semibold text-navy-900">{user.name}</div>
-                          <div className="text-navy-500 text-sm">{user.email}</div>
+                          <div className="font-medium text-gray-900">{user.name}</div>
+                          <div className="text-sm text-gray-500">{user.email}</div>
                         </div>
                       </div>
                     </td>
-                    <td>
-                      <span className={`badge ${user.role === 'admin' ? 'badge-warning' : 'badge-info'}`}>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        <Shield size={12} className="inline mr-1" />
                         {user.role}
                       </span>
                     </td>
-                    <td className="text-navy-600">{user.lastLogin}</td>
-                    <td>
-                      <span className={`badge ${user.status === 'active' ? 'badge-success' : 'badge-danger'}`}>
-                        {user.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => openModal(user)}
-                          className="p-2 rounded-lg hover:bg-cream-200 transition-colors"
-                        >
-                          <Edit size={16} className="text-navy-600" />
+                    <td className="px-6 py-4 text-gray-600">{user.lastLogin}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => openModal(user)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-amber-600">
+                          <Edit size={18} />
                         </button>
-                        <button
-                          onClick={() => handleDelete(user.id)}
-                          className="p-2 rounded-lg hover:bg-red-100 transition-colors"
-                        >
-                          <Trash2 size={16} className="text-red-600" />
+                        <button onClick={() => handleDelete(user.id)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-red-600">
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     </td>
                   </tr>
                 ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="text-center py-8 text-navy-500">
-                    No users found
-                  </td>
-                </tr>
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Permissions Info */}
-      <div className="card p-6">
-        <h3 className="font-display text-lg font-bold text-navy-900 mb-4">Role Permissions</h3>
-        <div className="grid sm:grid-cols-2 gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Shield size={18} className="text-gold-600" />
-              <span className="font-semibold text-navy-900">Admin</span>
-            </div>
-            <ul className="text-navy-600 text-sm space-y-1 ml-6">
-              <li>• Full access to all features</li>
-              <li>• Manage admin users</li>
-              <li>• Access system settings</li>
-              <li>• View analytics & reports</li>
-            </ul>
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <User size={18} className="text-blue-600" />
-              <span className="font-semibold text-navy-900">Editor</span>
-            </div>
-            <ul className="text-navy-600 text-sm space-y-1 ml-6">
-              <li>• Manage books, news, media</li>
-              <li>• View orders & donations</li>
-              <li>• Manage subscribers</li>
-              <li>• Cannot access settings</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/60">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-cream-50 rounded-2xl p-6 max-w-md w-full"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-2xl font-bold text-navy-900">
-                {editingUser ? 'Edit User' : 'Add User'}
-              </h2>
-              <button onClick={closeModal} className="p-2 rounded-lg hover:bg-cream-200">
-                <X size={20} />
-              </button>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-2xl shadow-xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">{editingUser ? 'Edit User' : 'Add User'}</h2>
+              <button onClick={closeModal} className="p-2 rounded-lg hover:bg-gray-100"><X size={20} /></button>
             </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-navy-700 text-sm font-medium mb-2">Name *</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="form-input"
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="form-input" required />
               </div>
-
               <div>
-                <label className="block text-navy-700 text-sm font-medium mb-2">Email *</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="form-input"
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="form-input" required />
               </div>
-
               <div>
-                <label className="block text-navy-700 text-sm font-medium mb-2">Role</label>
-                <select
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="form-input"
-                >
-                  <option value="admin">Admin</option>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} className="form-input">
                   <option value="editor">Editor</option>
+                  <option value="admin">Admin</option>
                 </select>
               </div>
-
-              <p className="text-navy-500 text-sm">
-                {editingUser 
-                  ? 'User will receive an email notification about the changes.'
-                  : 'An invitation email with login instructions will be sent to this address.'}
-              </p>
-
-              <div className="flex gap-4 pt-4">
-                <button type="button" onClick={closeModal} className="btn-secondary flex-1">
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary flex-1">
-                  {editingUser ? 'Update' : 'Send Invitation'}
-                </button>
+              <div className="flex gap-3 pt-4">
+                <button type="button" onClick={closeModal} className="btn-secondary flex-1">Cancel</button>
+                <button type="submit" className="btn-gold flex-1"><Save size={18} />Save</button>
               </div>
             </form>
           </motion.div>
@@ -294,4 +184,3 @@ export default function AdminUsers() {
     </div>
   );
 }
-

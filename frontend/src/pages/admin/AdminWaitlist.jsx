@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Bell, Mail, Trash2, BookOpen } from 'lucide-react';
+import { Search, Download, Mail, Trash2, BookOpen, Bell } from 'lucide-react';
 import api from '../../services/api';
 
 export default function AdminWaitlist() {
   const [waitlist, setWaitlist] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchWaitlist();
@@ -14,177 +13,108 @@ export default function AdminWaitlist() {
 
   const fetchWaitlist = async () => {
     try {
-      const res = await api.get('/admin/waitlist');
+      const res = await api.get('/waitlist');
       setWaitlist(res.data.waitlist || []);
-    } catch (error) {
-      setWaitlist(placeholderWaitlist);
+    } catch (err) {
+      setWaitlist([
+        { id: 1, email: 'david@example.com', bookTitle: 'Mevaser Tov - Bamidbar', date: '2026-01-15' },
+        { id: 2, email: 'sarah@example.com', bookTitle: 'Mevaser Tov - Devarim', date: '2026-01-14' },
+        { id: 3, email: 'moshe@example.com', bookTitle: 'Kedushas Yisroel', date: '2026-01-13' },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
-  const placeholderWaitlist = [
-    { id: 1, email: 'john@example.com', bookId: 6, bookTitle: 'Kedushas Yisroel', addedAt: '2026-01-15', notified: false },
-    { id: 2, email: 'sarah@example.com', bookId: 6, bookTitle: 'Kedushas Yisroel', addedAt: '2026-01-14', notified: false },
-    { id: 3, email: 'david@example.com', bookId: 12, bookTitle: 'Mevaser Tov - Shavuos', addedAt: '2026-01-12', notified: false },
-    { id: 4, email: 'rachel@example.com', bookId: 6, bookTitle: 'Kedushas Yisroel', addedAt: '2026-01-10', notified: true },
-  ];
+  const handleDelete = async (id) => {
+    if (!confirm('Remove from waitlist?')) return;
+    try {
+      await api.delete(`/waitlist/${id}`);
+      fetchWaitlist();
+    } catch (err) {
+      console.error('Error removing from waitlist:', err);
+    }
+  };
 
-  const displayWaitlist = waitlist.length > 0 ? waitlist : placeholderWaitlist;
+  const handleNotifyAll = async (bookTitle) => {
+    if (!confirm(`Send notification to all waiting for "${bookTitle}"?`)) return;
+    try {
+      await api.post('/waitlist/notify', { bookTitle });
+      alert('Notifications sent!');
+    } catch (err) {
+      console.error('Error sending notifications:', err);
+    }
+  };
 
-  const filteredWaitlist = displayWaitlist.filter(item =>
-    item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.bookTitle.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredWaitlist = waitlist.filter(w => 
+    w.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    w.bookTitle.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Group by book
   const groupedByBook = filteredWaitlist.reduce((acc, item) => {
-    if (!acc[item.bookId]) {
-      acc[item.bookId] = {
-        bookTitle: item.bookTitle,
-        items: []
-      };
-    }
-    acc[item.bookId].items.push(item);
+    if (!acc[item.bookTitle]) acc[item.bookTitle] = [];
+    acc[item.bookTitle].push(item);
     return acc;
   }, {});
 
-  const handleNotify = async (bookId) => {
-    try {
-      await api.post(`/admin/waitlist/notify/${bookId}`);
-      fetchWaitlist();
-    } catch (error) {
-      console.error('Error sending notifications:', error);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!confirm('Remove this email from the waitlist?')) return;
-    try {
-      await api.delete(`/admin/waitlist/${id}`);
-      fetchWaitlist();
-    } catch (error) {
-      console.error('Error deleting:', error);
-    }
-  };
-
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-3xl font-bold text-navy-900">Waitlist</h1>
-        <p className="text-navy-600">Manage book waitlist notifications</p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center">
-              <Bell size={20} className="text-white" />
-            </div>
-            <div>
-              <div className="font-display text-2xl font-bold text-navy-900">{displayWaitlist.length}</div>
-              <div className="text-navy-600 text-sm">Total Waiting</div>
-            </div>
-          </div>
-        </div>
-        <div className="card p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center">
-              <BookOpen size={20} className="text-white" />
-            </div>
-            <div>
-              <div className="font-display text-2xl font-bold text-navy-900">{Object.keys(groupedByBook).length}</div>
-              <div className="text-navy-600 text-sm">Books with Waitlist</div>
-            </div>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Book Waitlist</h1>
+          <p className="text-gray-500">{waitlist.length} people waiting for books</p>
         </div>
       </div>
 
-      {/* Search */}
       <div className="relative max-w-md">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-navy-400" size={20} />
-        <input
-          type="text"
-          placeholder="Search by email or book..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="form-input pl-12"
-        />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+        <input type="text" placeholder="Search by email or book..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-input pl-12" />
       </div>
 
-      {/* Grouped by Book */}
       {loading ? (
-        <div className="space-y-4">
-          {[...Array(2)].map((_, i) => (
-            <div key={i} className="card p-6 animate-pulse">
-              <div className="h-6 bg-cream-200 rounded w-48 mb-4"></div>
-              <div className="space-y-2">
-                <div className="h-10 bg-cream-200 rounded"></div>
-                <div className="h-10 bg-cream-200 rounded"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : Object.keys(groupedByBook).length > 0 ? (
+        <div className="text-center py-12 text-gray-400">Loading...</div>
+      ) : Object.keys(groupedByBook).length === 0 ? (
+        <div className="text-center py-12 text-gray-400">No waitlist entries found</div>
+      ) : (
         <div className="space-y-6">
-          {Object.entries(groupedByBook).map(([bookId, { bookTitle, items }]) => (
-            <motion.div
-              key={bookId}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="card overflow-hidden"
-            >
-              <div className="p-4 bg-cream-100 border-b border-cream-200 flex items-center justify-between">
+          {Object.entries(groupedByBook).map(([bookTitle, entries]) => (
+            <div key={bookTitle} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="p-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <BookOpen size={20} className="text-gold-600" />
+                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                    <BookOpen size={20} className="text-amber-600" />
+                  </div>
                   <div>
-                    <h3 className="font-display font-bold text-navy-900">{bookTitle}</h3>
-                    <p className="text-navy-500 text-sm">{items.length} people waiting</p>
+                    <h3 className="font-semibold text-gray-900">{bookTitle}</h3>
+                    <p className="text-sm text-gray-500">{entries.length} people waiting</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleNotify(bookId)}
-                  className="btn-primary flex items-center gap-2 text-sm"
-                >
-                  <Mail size={16} />
+                <button onClick={() => handleNotifyAll(bookTitle)} className="btn-secondary text-sm py-2">
+                  <Bell size={16} />
                   Notify All
                 </button>
               </div>
-              <div className="divide-y divide-cream-200">
-                {items.map((item) => (
-                  <div key={item.id} className="p-4 flex items-center justify-between">
-                    <div>
-                      <a href={`mailto:${item.email}`} className="text-gold-600 hover:text-gold-700 font-medium">
-                        {item.email}
-                      </a>
-                      <p className="text-navy-500 text-sm">Added: {item.addedAt}</p>
-                    </div>
+              <div className="divide-y divide-gray-100">
+                {entries.map((entry) => (
+                  <div key={entry.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
                     <div className="flex items-center gap-3">
-                      {item.notified && (
-                        <span className="badge badge-success">Notified</span>
-                      )}
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="p-2 rounded-lg hover:bg-red-100 transition-colors"
-                      >
-                        <Trash2 size={16} className="text-red-600" />
+                      <Mail size={16} className="text-gray-400" />
+                      <span className="text-gray-900">{entry.email}</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm text-gray-500">{entry.date}</span>
+                      <button onClick={() => handleDelete(entry.id)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-red-600">
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
           ))}
-        </div>
-      ) : (
-        <div className="card p-12 text-center">
-          <Bell size={48} className="mx-auto text-navy-300 mb-4" />
-          <h3 className="font-display text-xl text-navy-600 mb-2">No Waitlist Entries</h3>
-          <p className="text-navy-500">When customers sign up for out-of-stock books, they'll appear here.</p>
         </div>
       )}
     </div>
   );
 }
-
