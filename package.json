@@ -1,0 +1,17 @@
+{
+  "name": "biala-books",
+  "version": "1.0.0",
+  "description": "Biala Publishing - Torah Writings of the Mevaser Tov",
+  "private": true,
+  "scripts": {
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start"
+  },
+  "keywords": ["biala", "publishing", "torah", "chassidus"],
+  "author": "Biala Publishing",
+  "license": "UNLICENSED"
+}
+
