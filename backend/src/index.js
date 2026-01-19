@@ -18,8 +18,13 @@ const adminRoutes = require('./routes/admin');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
+// CORS - allow all origins
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
@@ -46,15 +51,48 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// SMTP test endpoint (for debugging)
+// SMTP test endpoint
 app.get('/api/test-smtp', async (req, res) => {
   const { testConnection } = require('./services/email');
   const result = await testConnection();
   res.json(result);
 });
 
+// Test login endpoint (for debugging)
+app.get('/api/test-login/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const crypto = require('crypto');
+    const db = require('./config/database');
+    
+    // Create user if not exists
+    let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    if (!user) {
+      db.prepare('INSERT INTO users (name, email, role) VALUES (?, ?, ?)').run(
+        email.split('@')[0], email, 'admin'
+      );
+    }
+    
+    // Generate code
+    const code = crypto.randomInt(100000, 999999).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    
+    db.prepare('INSERT INTO auth_codes (email, code, expires_at) VALUES (?, ?, ?)').run(
+      email, code, expiresAt.toISOString()
+    );
+    
+    res.json({ 
+      success: true,
+      email,
+      code,
+      message: 'Use this code to login'
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Biala Books API running on port ${PORT}`);
 });
-
