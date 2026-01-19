@@ -1,306 +1,241 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Download, FileText, Calendar, ExternalLink, BookOpen, Newspaper } from 'lucide-react';
-import api from '../services/api';
+import { FileText, Download, Calendar, Eye, Search, Filter } from 'lucide-react';
 
 export default function PublicationsPage() {
-  const [publications, setPublications] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  useEffect(() => {
-    api.get('/publications')
-      .then(res => setPublications(res.data.publications || []))
-      .catch(() => setPublications(placeholderPublications))
-      .finally(() => setLoading(false));
-  }, []);
+  const categories = ['all', 'Weekly Parsha', 'Holidays', 'Special Occasions', 'Archive'];
 
-  const placeholderPublications = [
+  const publications = [
     {
       id: 1,
-      title: 'Weekly Parsha Sheet - Parshas Bereishis',
-      hebrewTitle: 'עלון השבוע - פרשת בראשית',
-      category: 'Weekly',
+      title: 'Parshas Shemos - Weekly Insights',
+      description: 'Torah thoughts and stories from the Mevaser Tov on this week\'s parsha',
       date: '2026-01-17',
-      description: 'Torah thoughts and insights for the weekly parsha from the Mevaser Tov.',
-      downloadUrl: '#',
+      category: 'Weekly Parsha',
+      downloads: 234,
       pages: 4
     },
     {
       id: 2,
-      title: 'Weekly Parsha Sheet - Parshas Noach',
-      hebrewTitle: 'עלון השבוע - פרשת נח',
-      category: 'Weekly',
+      title: 'Parshas Vaera - Weekly Insights',
+      description: 'Teachings on redemption and faith from the holy Rebbes of Biala',
       date: '2026-01-10',
-      description: 'Chassidic teachings on Parshas Noach.',
-      downloadUrl: '#',
+      category: 'Weekly Parsha',
+      downloads: 312,
       pages: 4
     },
     {
       id: 3,
-      title: 'Chanukah Special Edition',
-      hebrewTitle: 'מהדורה מיוחדת לחנוכה',
-      category: 'Special',
-      date: '2025-12-15',
-      description: 'Special publication for Chanukah with stories, teachings, and inspiration.',
-      downloadUrl: '#',
-      pages: 16
+      title: 'Tu B\'Shvat Special Edition',
+      description: 'Insights on the New Year of the Trees and spiritual growth',
+      date: '2026-01-08',
+      category: 'Holidays',
+      downloads: 456,
+      pages: 8
     },
     {
       id: 4,
-      title: 'Annual Community Magazine',
-      hebrewTitle: 'מגזין הקהילה השנתי',
-      category: 'Magazine',
-      date: '2025-09-01',
-      description: 'The comprehensive annual review of Biala community activities worldwide.',
-      downloadUrl: '#',
-      pages: 48
+      title: 'Chanukah Compilation 5786',
+      description: 'Complete collection of Chanukah teachings and stories',
+      date: '2025-12-20',
+      category: 'Holidays',
+      downloads: 892,
+      pages: 16
     },
     {
       id: 5,
-      title: 'Rosh Hashanah Preparation Guide',
-      hebrewTitle: 'מדריך הכנה לראש השנה',
-      category: 'Special',
-      date: '2025-09-15',
-      description: 'Spiritual preparation and customs for the High Holidays.',
-      downloadUrl: '#',
+      title: 'Yahrtzeit Memorial Edition',
+      description: 'Special publication in memory of the Mevaser Tov',
+      date: '2025-12-15',
+      category: 'Special Occasions',
+      downloads: 567,
       pages: 12
     },
     {
       id: 6,
-      title: 'Pesach Haggadah Companion',
-      hebrewTitle: 'הגדה של פסח עם פירושים',
-      category: 'Special',
-      date: '2025-04-10',
-      description: 'Enhanced Haggadah with commentary from the Biala Rebbes.',
-      downloadUrl: '#',
-      pages: 24
-    },
-    {
-      id: 7,
-      title: 'Stories of Faith',
-      hebrewTitle: 'סיפורי אמונה',
-      category: 'Booklet',
-      date: '2025-06-20',
-      description: 'Collection of inspiring stories from the Biala tradition.',
-      downloadUrl: '#',
-      pages: 32
-    },
-    {
-      id: 8,
-      title: 'Tikkun Chatzos Guide',
-      hebrewTitle: 'סדר תיקון חצות',
-      category: 'Booklet',
-      date: '2025-07-15',
-      description: 'Complete guide for the midnight prayer service.',
-      downloadUrl: '#',
+      title: 'Rosh Hashanah Guide 5786',
+      description: 'Preparation guide and teachings for the new year',
+      date: '2025-09-20',
+      category: 'Archive',
+      downloads: 1234,
       pages: 20
     },
   ];
 
-  const displayPublications = publications.length > 0 ? publications : placeholderPublications;
-  const categories = ['all', ...new Set(displayPublications.map(p => p.category))];
-  
-  const filteredPublications = selectedCategory === 'all' 
-    ? displayPublications 
-    : displayPublications.filter(p => p.category === selectedCategory);
-
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case 'Weekly': return Newspaper;
-      case 'Magazine': return BookOpen;
-      default: return FileText;
-    }
-  };
+  const filteredPublications = publications.filter(pub => {
+    const matchesSearch = pub.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          pub.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || pub.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-navy-900 mb-4">
-            Publications & <span className="text-gradient">Newsletters</span>
-          </h1>
-          <p className="text-xl text-navy-600 max-w-2xl mx-auto">
-            Free downloadable publications including weekly parsha sheets, special editions, and more
-          </p>
-        </motion.div>
-
-        {/* Category Filters */}
-        <div className="flex flex-wrap justify-center gap-2 mb-12">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-lg font-display text-sm uppercase tracking-wider transition-all ${
-                selectedCategory === category
-                  ? 'bg-gold-500 text-navy-950'
-                  : 'bg-cream-200 text-navy-700 hover:bg-cream-300'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-
-        {/* Latest Weekly Sheet Highlight */}
-        {filteredPublications.some(p => p.category === 'Weekly') && (
-          <motion.section
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero */}
+      <section className="bg-gradient-to-b from-amber-50 to-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-16"
           >
-            {(() => {
-              const latestWeekly = filteredPublications.find(p => p.category === 'Weekly');
-              if (!latestWeekly) return null;
-              
-              return (
-                <div className="ornate-border p-8 md:p-12 bg-gradient-to-r from-cream-50 to-cream-100">
-                  <div className="flex flex-col md:flex-row items-center gap-8">
-                    <div className="w-32 h-40 rounded-lg overflow-hidden shadow-lg bg-navy-900 flex items-center justify-center shrink-0">
-                      <Newspaper size={48} className="text-gold-400" />
-                    </div>
-                    <div className="flex-1 text-center md:text-left">
-                      <span className="badge badge-success mb-3">Latest Edition</span>
-                      <h2 className="font-display text-2xl md:text-3xl font-bold text-navy-900 mb-2">
-                        {latestWeekly.title}
-                      </h2>
-                      <p className="font-hebrew text-xl text-gold-700 mb-3">{latestWeekly.hebrewTitle}</p>
-                      <p className="text-navy-600 mb-4">{latestWeekly.description}</p>
-                      <a 
-                        href={latestWeekly.downloadUrl}
-                        className="btn-primary inline-flex items-center gap-2"
-                      >
-                        <Download size={18} />
-                        Download This Week's Sheet
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-          </motion.section>
-        )}
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-100 flex items-center justify-center mb-6">
+              <FileText className="text-amber-600" size={32} />
+            </div>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Publications
+            </h1>
+            <p className="text-gray-500 max-w-2xl mx-auto text-lg">
+              Download our weekly leaflets, holiday guides, and special publications
+            </p>
+          </motion.div>
+        </div>
+      </section>
 
-        {/* Publications Grid */}
-        {loading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="card p-6 animate-pulse">
-                <div className="h-12 w-12 bg-cream-200 rounded-lg mb-4"></div>
-                <div className="h-6 bg-cream-200 rounded mb-2"></div>
-                <div className="h-4 bg-cream-200 rounded w-2/3 mb-4"></div>
-                <div className="h-20 bg-cream-200 rounded"></div>
-              </div>
-            ))}
+      {/* Filters */}
+      <section className="py-6 bg-white border-b border-gray-100 sticky top-16 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            {/* Categories */}
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedCategory === cat
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {cat === 'all' ? 'All' : cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Search */}
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="Search publications..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="form-input pl-11 py-2.5"
+              />
+            </div>
           </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPublications.map((item, index) => {
-              const CategoryIcon = getCategoryIcon(item.category);
-              
-              return (
+        </div>
+      </section>
+
+      {/* Publications List */}
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {filteredPublications.length === 0 ? (
+            <div className="text-center py-12">
+              <FileText size={48} className="mx-auto text-gray-300 mb-4" />
+              <p className="text-gray-500">No publications found matching your criteria.</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPublications.map((pub, index) => (
                 <motion.div
-                  key={item.id}
+                  key={pub.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="card p-6 group hover:shadow-xl transition-shadow"
+                  className="card p-6 group"
                 >
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-lg bg-gold-100 flex items-center justify-center shrink-0 group-hover:bg-gold-200 transition-colors">
-                      <CategoryIcon size={24} className="text-gold-600" />
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shrink-0">
+                      <FileText className="text-white" size={24} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="badge badge-info text-xs">{item.category}</span>
-                      <div className="flex items-center gap-2 text-navy-500 text-xs mt-1">
-                        <Calendar size={12} />
-                        {new Date(item.date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </div>
+                      <span className="text-xs text-amber-600 font-medium uppercase tracking-wide">
+                        {pub.category}
+                      </span>
+                      <h3 className="font-semibold text-gray-900 group-hover:text-amber-600 transition-colors truncate">
+                        {pub.title}
+                      </h3>
                     </div>
                   </div>
 
-                  <h3 className="font-display text-lg font-bold text-navy-900 mb-1 group-hover:text-gold-700 transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="font-hebrew text-gold-700 text-sm mb-3">{item.hebrewTitle}</p>
-                  <p className="text-navy-600 text-sm mb-4 line-clamp-2">{item.description}</p>
+                  <p className="text-gray-500 text-sm mb-4 line-clamp-2">
+                    {pub.description}
+                  </p>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-cream-200">
-                    <span className="text-navy-500 text-sm">{item.pages} pages</span>
-                    <a 
-                      href={item.downloadUrl}
-                      className="flex items-center gap-2 text-gold-600 font-semibold hover:text-gold-700 transition-colors"
-                    >
+                  <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
+                    <span className="flex items-center gap-1">
+                      <Calendar size={14} />
+                      {new Date(pub.date).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric' 
+                      })}
+                    </span>
+                    <span>{pub.pages} pages</span>
+                    <span className="flex items-center gap-1">
+                      <Download size={14} />
+                      {pub.downloads}
+                    </span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button className="btn-gold flex-1 py-2.5 text-sm">
                       <Download size={16} />
-                      Download
-                    </a>
+                      Download PDF
+                    </button>
+                    <button className="btn-secondary py-2.5 px-4">
+                      <Eye size={16} />
+                    </button>
                   </div>
                 </motion.div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Archive Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-20"
-        >
-          <div className="card p-8 md:p-12 bg-navy-900 text-cream-100">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-gold-400 mb-2">
-                  Complete Archive
-                </h2>
-                <p className="text-cream-300">
-                  Access our full archive of weekly parsha sheets and special publications dating back to 2010.
-                </p>
-              </div>
-              <a href="#" className="btn-primary whitespace-nowrap flex items-center gap-2">
-                <ExternalLink size={18} />
-                Browse Archive
-              </a>
+              ))}
             </div>
-          </div>
-        </motion.section>
+          )}
+        </div>
+      </section>
 
-        {/* Subscribe CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-20 ornate-border p-8 md:p-12 text-center"
-        >
-          <h2 className="font-display text-3xl font-bold text-navy-900 mb-4">
-            Never Miss an Issue
-          </h2>
-          <p className="text-lg text-navy-600 mb-8 max-w-xl mx-auto">
-            Subscribe to receive our weekly parsha sheet and special publications directly to your email.
+      {/* Subscribe Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="card p-8 md:p-12 text-center bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+            <h2 className="font-display text-3xl font-bold mb-4">
+              Get Weekly Publications
+            </h2>
+            <p className="text-gray-300 mb-8 max-w-xl mx-auto">
+              Subscribe to receive our weekly parsha leaflet and special holiday publications directly to your inbox
+            </p>
+            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="form-input flex-1 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+              />
+              <button type="submit" className="btn-gold whitespace-nowrap">
+                Subscribe
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      {/* Archive Note */}
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-gray-500">
+            Looking for older publications? Check our{' '}
+            <button 
+              onClick={() => setSelectedCategory('Archive')}
+              className="text-amber-600 hover:underline font-medium"
+            >
+              archive section
+            </button>{' '}
+            for past years' collections.
           </p>
-          <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="form-input flex-1"
-            />
-            <button type="submit" className="btn-primary whitespace-nowrap">
-              Subscribe
-            </button>
-          </form>
-        </motion.div>
-      </div>
+        </div>
+      </section>
     </div>
   );
 }
-

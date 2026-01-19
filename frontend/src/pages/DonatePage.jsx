@@ -1,375 +1,230 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, BookOpen, Calendar, Building2, Check, CreditCard, Building, DollarSign } from 'lucide-react';
+import { Heart, BookOpen, Users, Calendar, CreditCard, Building, Check } from 'lucide-react';
 
 export default function DonatePage() {
-  const [selectedCause, setSelectedCause] = useState('general');
-  const [amount, setAmount] = useState('');
+  const [selectedAmount, setSelectedAmount] = useState(100);
   const [customAmount, setCustomAmount] = useState('');
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [donorInfo, setDonorInfo] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    dedication: '',
-  });
+  const [donationType, setDonationType] = useState('general');
+
+  const amounts = [18, 36, 54, 100, 180, 360, 500, 1000];
 
   const causes = [
     {
       id: 'general',
-      title: 'General Fund',
       icon: Heart,
-      description: 'Support all activities of the Biala institutions',
+      title: 'General Fund',
+      description: 'Support all activities of Biala institutions'
     },
     {
       id: 'books',
-      title: 'Book Publishing',
       icon: BookOpen,
-      description: 'Help publish and distribute the Rebbe\'s Torah teachings',
-    },
-    {
-      id: 'events',
-      title: 'Community Events',
-      icon: Calendar,
-      description: 'Support gatherings, celebrations, and community programs',
+      title: 'Book Publishing',
+      description: 'Help publish and distribute sacred texts'
     },
     {
       id: 'institutions',
+      icon: Building,
       title: 'Institutions',
-      icon: Building2,
-      description: 'Support our yeshivos, schools, and batei medrash',
+      description: 'Support yeshivos and educational programs'
+    },
+    {
+      id: 'events',
+      icon: Calendar,
+      title: 'Events & Programs',
+      description: 'Fund community gatherings and celebrations'
     },
   ];
 
-  const presetAmounts = ['18', '36', '54', '100', '180', '360'];
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const finalAmount = amount === 'custom' ? customAmount : amount;
-    console.log('Donation submitted:', {
-      cause: selectedCause,
-      amount: finalAmount,
-      recurring: isRecurring,
-      donorInfo
-    });
-    // Handle payment processing
+  const handleAmountClick = (amount) => {
+    setSelectedAmount(amount);
+    setCustomAmount('');
   };
 
-  return (
-    <div className="min-h-screen py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-navy-900 mb-4">
-            Support Our <span className="text-gradient">Mission</span>
-          </h1>
-          <p className="text-xl text-navy-600 max-w-2xl mx-auto">
-            Your generous donation helps spread Torah and Chassidus throughout the world
-          </p>
-        </motion.div>
+  const handleCustomAmount = (e) => {
+    setCustomAmount(e.target.value);
+    setSelectedAmount(null);
+  };
 
-        <div className="grid lg:grid-cols-3 gap-12">
-          {/* Left Column - Cause Selection */}
-          <div className="lg:col-span-2">
-            {/* Select Cause */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-12"
-            >
-              <h2 className="font-display text-2xl font-bold text-navy-900 mb-6">
-                1. Choose Where to Give
-              </h2>
+  const finalAmount = customAmount || selectedAmount;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero */}
+      <section className="bg-gradient-to-b from-amber-50 to-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-100 flex items-center justify-center mb-6">
+              <Heart className="text-amber-600" size={32} />
+            </div>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Support Our Mission
+            </h1>
+            <p className="text-gray-500 max-w-2xl mx-auto text-lg">
+              Your generous donation helps us spread Torah wisdom and support Jewish communities worldwide
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Donation Form */}
+      <section className="py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="card p-8 md:p-12">
+            {/* Donation Type */}
+            <div className="mb-10">
+              <h2 className="font-semibold text-xl text-gray-900 mb-6">Select a Cause</h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 {causes.map((cause) => (
                   <button
                     key={cause.id}
-                    onClick={() => setSelectedCause(cause.id)}
-                    className={`card p-6 text-left transition-all ${
-                      selectedCause === cause.id
-                        ? 'ring-2 ring-gold-500 bg-gold-50'
-                        : 'hover:shadow-lg'
+                    onClick={() => setDonationType(cause.id)}
+                    className={`p-4 rounded-xl border-2 text-left transition-all ${
+                      donationType === cause.id
+                        ? 'border-amber-500 bg-amber-50'
+                        : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                        selectedCause === cause.id
-                          ? 'bg-gold-500 text-navy-950'
-                          : 'bg-cream-200 text-navy-600'
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        donationType === cause.id ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-500'
                       }`}>
-                        <cause.icon size={24} />
+                        <cause.icon size={20} />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-display font-bold text-navy-900 mb-1">
-                          {cause.title}
-                        </h3>
-                        <p className="text-navy-600 text-sm">{cause.description}</p>
+                        <h3 className="font-medium text-gray-900">{cause.title}</h3>
+                        <p className="text-sm text-gray-500 mt-0.5">{cause.description}</p>
                       </div>
-                      {selectedCause === cause.id && (
-                        <Check size={20} className="text-gold-600 shrink-0" />
+                      {donationType === cause.id && (
+                        <Check className="text-amber-500" size={20} />
                       )}
                     </div>
                   </button>
                 ))}
               </div>
-            </motion.section>
+            </div>
 
-            {/* Select Amount */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="mb-12"
-            >
-              <h2 className="font-display text-2xl font-bold text-navy-900 mb-6">
-                2. Select Amount
-              </h2>
-              
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-4">
-                {presetAmounts.map((preset) => (
+            {/* Amount Selection */}
+            <div className="mb-10">
+              <h2 className="font-semibold text-xl text-gray-900 mb-6">Select Amount</h2>
+              <div className="grid grid-cols-4 gap-3 mb-4">
+                {amounts.map((amount) => (
                   <button
-                    key={preset}
-                    onClick={() => setAmount(preset)}
-                    className={`py-3 px-4 rounded-lg font-display font-bold transition-all ${
-                      amount === preset
-                        ? 'bg-gold-500 text-navy-950'
-                        : 'bg-cream-200 text-navy-700 hover:bg-cream-300'
+                    key={amount}
+                    onClick={() => handleAmountClick(amount)}
+                    className={`py-3 px-4 rounded-xl font-semibold transition-all ${
+                      selectedAmount === amount && !customAmount
+                        ? 'bg-amber-500 text-white shadow-lg shadow-amber-200'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    ${preset}
+                    ${amount}
                   </button>
                 ))}
               </div>
-
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => setAmount('custom')}
-                  className={`py-3 px-6 rounded-lg font-display font-bold transition-all ${
-                    amount === 'custom'
-                      ? 'bg-gold-500 text-navy-950'
-                      : 'bg-cream-200 text-navy-700 hover:bg-cream-300'
-                  }`}
-                >
-                  Custom
-                </button>
-                {amount === 'custom' && (
-                  <div className="relative flex-1 max-w-xs">
-                    <DollarSign size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-navy-400" />
-                    <input
-                      type="number"
-                      value={customAmount}
-                      onChange={(e) => setCustomAmount(e.target.value)}
-                      placeholder="Enter amount"
-                      className="form-input pl-10"
-                      min="1"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Recurring option */}
-              <label className="flex items-center gap-3 mt-6 cursor-pointer">
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-semibold">$</span>
                 <input
-                  type="checkbox"
-                  checked={isRecurring}
-                  onChange={(e) => setIsRecurring(e.target.checked)}
-                  className="w-5 h-5 rounded border-cream-300 text-gold-500 focus:ring-gold-400"
+                  type="number"
+                  placeholder="Custom amount"
+                  value={customAmount}
+                  onChange={handleCustomAmount}
+                  className="form-input pl-8 text-lg"
                 />
-                <span className="text-navy-700">Make this a monthly recurring donation</span>
-              </label>
-            </motion.section>
+              </div>
+            </div>
 
-            {/* Donor Information */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <h2 className="font-display text-2xl font-bold text-navy-900 mb-6">
-                3. Your Information
-              </h2>
-              
-              <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Payment Info */}
+            <div className="mb-10">
+              <h2 className="font-semibold text-xl text-gray-900 mb-6">Payment Information</h2>
+              <div className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-navy-700 text-sm font-medium mb-2">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={donorInfo.name}
-                      onChange={(e) => setDonorInfo({ ...donorInfo, name: e.target.value })}
-                      className="form-input"
-                      required
-                    />
+                  <input type="text" placeholder="First Name" className="form-input" />
+                  <input type="text" placeholder="Last Name" className="form-input" />
+                </div>
+                <input type="email" placeholder="Email Address" className="form-input" />
+                <input type="tel" placeholder="Phone Number (optional)" className="form-input" />
+                
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center gap-3 mb-4">
+                    <CreditCard className="text-gray-400" size={20} />
+                    <span className="font-medium text-gray-900">Card Details</span>
                   </div>
-                  <div>
-                    <label className="block text-navy-700 text-sm font-medium mb-2">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      value={donorInfo.email}
-                      onChange={(e) => setDonorInfo({ ...donorInfo, email: e.target.value })}
-                      className="form-input"
-                      required
-                    />
+                  <input type="text" placeholder="Card Number" className="form-input mb-4" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <input type="text" placeholder="MM/YY" className="form-input" />
+                    <input type="text" placeholder="CVC" className="form-input" />
                   </div>
                 </div>
+              </div>
+            </div>
 
-                <div>
-                  <label className="block text-navy-700 text-sm font-medium mb-2">
-                    Phone Number (optional)
-                  </label>
-                  <input
-                    type="tel"
-                    value={donorInfo.phone}
-                    onChange={(e) => setDonorInfo({ ...donorInfo, phone: e.target.value })}
-                    className="form-input"
-                  />
-                </div>
+            {/* Summary & Submit */}
+            <div className="bg-gray-50 rounded-2xl p-6 mb-6">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Donation Amount</span>
+                <span className="font-display text-3xl font-bold text-gray-900">${finalAmount || 0}</span>
+              </div>
+            </div>
 
-                <div>
-                  <label className="block text-navy-700 text-sm font-medium mb-2">
-                    Dedication (optional)
-                  </label>
-                  <textarea
-                    value={donorInfo.dedication}
-                    onChange={(e) => setDonorInfo({ ...donorInfo, dedication: e.target.value })}
-                    className="form-input min-h-[100px]"
-                    placeholder="In memory of... / In honor of... / L'iluy Nishmas..."
-                  />
-                </div>
+            <button className="btn-gold w-full py-4 text-lg">
+              <Heart size={20} />
+              Complete Donation
+            </button>
 
-                <button
-                  type="submit"
-                  className="btn-primary w-full flex items-center justify-center gap-2 text-lg py-4"
-                  disabled={!amount || (amount === 'custom' && !customAmount)}
-                >
-                  <CreditCard size={20} />
-                  Donate ${amount === 'custom' ? customAmount || '0' : amount}
-                  {isRecurring ? '/month' : ''}
-                </button>
-              </form>
-            </motion.section>
+            <p className="text-center text-sm text-gray-400 mt-4">
+              Your donation is tax-deductible. You will receive a receipt via email.
+            </p>
           </div>
 
-          {/* Right Column - Info & Bank Details */}
-          <div className="space-y-8">
-            {/* Donation Impact */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="card p-6"
-            >
-              <h3 className="font-display text-xl font-bold text-navy-900 mb-4">
-                Your Impact
-              </h3>
-              <ul className="space-y-3 text-navy-600">
-                <li className="flex items-start gap-3">
-                  <Check size={18} className="text-green-600 shrink-0 mt-0.5" />
-                  <span>$18 sponsors a weekly parsha sheet distribution</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check size={18} className="text-green-600 shrink-0 mt-0.5" />
-                  <span>$54 helps publish one page of Torah teachings</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check size={18} className="text-green-600 shrink-0 mt-0.5" />
-                  <span>$180 supports a yeshiva student for one week</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check size={18} className="text-green-600 shrink-0 mt-0.5" />
-                  <span>$360 sponsors a complete sefer for a family</span>
-                </li>
-              </ul>
-            </motion.div>
-
-            {/* Bank Transfer Option */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="card p-6 bg-navy-900 text-cream-100"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <Building size={24} className="text-gold-400" />
-                <h3 className="font-display text-xl font-bold text-gold-400">
-                  Wire Transfer
-                </h3>
-              </div>
-              <p className="text-cream-300 mb-4 text-sm">
-                For larger donations or wire transfers, please use the following bank details:
-              </p>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="text-cream-400">Bank:</span>
-                  <span className="text-cream-100 ml-2">Chase Bank</span>
-                </div>
-                <div>
-                  <span className="text-cream-400">Account Name:</span>
-                  <span className="text-cream-100 ml-2">Biala Publishing Inc.</span>
-                </div>
-                <div>
-                  <span className="text-cream-400">Routing #:</span>
-                  <span className="text-cream-100 ml-2">021000021</span>
-                </div>
-                <div>
-                  <span className="text-cream-400">Account #:</span>
-                  <span className="text-cream-100 ml-2">123456789</span>
-                </div>
-                <div>
-                  <span className="text-cream-400">SWIFT:</span>
-                  <span className="text-cream-100 ml-2">CHASUS33</span>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Tax Info */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="card p-6"
-            >
-              <h3 className="font-display text-xl font-bold text-navy-900 mb-3">
-                Tax Deductible
-              </h3>
-              <p className="text-navy-600 text-sm">
-                Biala Publishing is a registered 501(c)(3) non-profit organization. 
-                All donations are tax-deductible to the fullest extent of the law.
-                A receipt will be emailed to you for your records.
-              </p>
-              <p className="text-navy-500 text-xs mt-3">
-                EIN: 12-3456789
-              </p>
-            </motion.div>
-
-            {/* Contact for Major Gifts */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="card p-6 border-2 border-gold-400"
-            >
-              <h3 className="font-display text-xl font-bold text-navy-900 mb-3">
-                Major Gifts
-              </h3>
-              <p className="text-navy-600 text-sm mb-4">
-                For sponsorship opportunities or donations over $10,000, please contact us directly to discuss how your gift can make the greatest impact.
-              </p>
-              <a href="mailto:donations@bialapublishing.com" className="text-gold-600 font-semibold hover:text-gold-700">
-                donations@bialapublishing.com
-              </a>
-            </motion.div>
+          {/* Alternative Payment Methods */}
+          <div className="mt-8 text-center">
+            <p className="text-gray-500 mb-4">Or donate via bank transfer:</p>
+            <div className="card p-6 inline-block text-left">
+              <p className="font-medium text-gray-900 mb-2">US Bank Account</p>
+              <p className="text-sm text-gray-500">Bank: Chase Bank</p>
+              <p className="text-sm text-gray-500">Account: Biala Publishing Fund</p>
+              <p className="text-sm text-gray-500">Routing: XXXXXXXXX</p>
+              <p className="text-sm text-gray-500">Account #: XXXXXXXXX</p>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Impact Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="font-display text-3xl font-bold text-gray-900 mb-4">
+              Your Impact
+            </h2>
+            <p className="text-gray-500">See how your donation makes a difference</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { amount: '$36', impact: 'Provides a sefer to a student in need' },
+              { amount: '$180', impact: 'Sponsors a week of Torah classes' },
+              { amount: '$1,000', impact: 'Helps publish a new volume of teachings' },
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="text-center"
+              >
+                <div className="font-display text-4xl font-bold text-amber-600 mb-2">{item.amount}</div>
+                <p className="text-gray-600">{item.impact}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
-

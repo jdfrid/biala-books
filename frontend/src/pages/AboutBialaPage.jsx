@@ -1,139 +1,152 @@
 import { motion } from 'framer-motion';
+import { MapPin, Users, BookOpen, Calendar, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { MapPin, Users, BookOpen, Building2, Calendar, ChevronRight } from 'lucide-react';
 
 export default function AboutBialaPage() {
   const rebbes = [
     {
-      name: 'The Divrei Binah',
-      hebrewName: 'הרב יצחק יעקב רבינוביץ זצ״ל',
-      period: '1847-1905',
-      description: 'The founder of the Biala dynasty, known for his profound scholarship and Chassidic teachings.',
-      image: '/images/rebbes/divrei-binah.jpg'
+      name: 'Rebbe Yaakov Yitzchak',
+      hebrewName: 'רבי יעקב יצחק',
+      title: 'The First Biala Rebbe',
+      years: '1847-1905',
+      description: 'Founder of the Biala dynasty, known for his holiness and miraculous deeds.'
     },
     {
-      name: 'The Chelkas Yehoshua',
-      hebrewName: 'הרב יהושע רבינוביץ זצ״ל',
-      period: '1860-1930',
-      description: 'Led the Biala community during challenging times in pre-war Poland.',
-      image: '/images/rebbes/chelkas-yehoshua.jpg'
+      name: 'Rebbe Nosson Dovid',
+      hebrewName: 'רבי נתן דוד',
+      title: 'The Second Biala Rebbe',
+      years: '1866-1930',
+      description: 'Expanded the dynasty and established communities across Poland.'
     },
     {
-      name: 'The Mevaser Tov',
-      hebrewName: 'הרב ירחמיאל צבי רבינוביץ זיע״א',
-      period: '1928-2018',
-      description: 'Rebuilt the dynasty after the Holocaust and inspired generations with his teachings.',
-      image: '/images/rebbe-mevaser-tov.jpg'
+      name: 'Rebbe Yerachmiel Tzvi',
+      hebrewName: 'רבי ירחמיאל צבי',
+      title: 'The Mevaser Tov',
+      years: '1927-2000',
+      description: 'Rebuilt the dynasty after the Holocaust and authored the Mevaser Tov seforim.'
     },
     {
       name: 'The Current Rebbe',
-      hebrewName: 'כ״ק אדמו״ר שליט״א',
-      period: '2018-Present',
-      description: 'Continues to lead the growing Biala community worldwide.',
-      image: '/images/rebbe-current.jpg'
-    }
+      hebrewName: 'האדמו"ר שליט"א',
+      title: 'The Current Biala Rebbe',
+      years: 'Present',
+      description: 'Continues the sacred tradition, leading vibrant communities worldwide.'
+    },
   ];
 
   const communities = [
-    { location: 'Jerusalem', country: 'Israel', members: '500+', institutions: 'Beis Medrash, Yeshiva, Kollel' },
-    { location: 'Bnei Brak', country: 'Israel', members: '300+', institutions: 'Beis Medrash, Schools' },
-    { location: 'Brooklyn', country: 'USA', members: '400+', institutions: 'Beis Medrash, Yeshiva' },
-    { location: 'London', country: 'UK', members: '150+', institutions: 'Beis Medrash, Community' },
-    { location: 'Antwerp', country: 'Belgium', members: '100+', institutions: 'Beis Medrash' },
-    { location: 'Montreal', country: 'Canada', members: '80+', institutions: 'Beis Medrash' },
+    { name: 'Jerusalem', country: 'Israel', members: '500+ families' },
+    { name: 'Bnei Brak', country: 'Israel', members: '300+ families' },
+    { name: 'Brooklyn', country: 'USA', members: '200+ families' },
+    { name: 'London', country: 'UK', members: '100+ families' },
+    { name: 'Antwerp', country: 'Belgium', members: '50+ families' },
+  ];
+
+  const institutions = [
+    { name: 'Yeshiva Gedolah', type: 'Education', location: 'Jerusalem' },
+    { name: 'Kollel Avreichim', type: 'Torah Study', location: 'Bnei Brak' },
+    { name: 'Talmud Torah', type: 'Children\'s Education', location: 'Multiple locations' },
+    { name: 'Chesed Organizations', type: 'Social Services', location: 'Worldwide' },
   ];
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-20 bg-gradient-to-br from-navy-900 via-navy-950 to-navy-900 text-cream-100 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-64 h-64 border border-gold-400 rounded-full"></div>
-          <div className="absolute bottom-20 right-20 w-80 h-80 border border-gold-400 rounded-full"></div>
+      <section className="relative py-24 bg-gradient-to-b from-gray-900 to-gray-800 text-white overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-900/20 to-transparent"></div>
         </div>
-
+        
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative text-center">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-3xl mx-auto"
+            transition={{ duration: 0.5 }}
           >
-            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              Biala <span className="text-gold-400">Hasidism</span>
-            </h1>
-            <p className="font-hebrew text-2xl text-gold-300 mb-6">
-              חסידות ביאלא
-            </p>
-            <p className="text-xl text-cream-300 leading-relaxed">
-              A living tradition spanning over 150 years, bringing the light of Chassidus 
-              to Jews across the globe
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* History Section */}
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="font-display text-4xl font-bold text-navy-900 mb-8 text-center">
-              Our <span className="text-gradient">History</span>
-            </h2>
-
-            <div className="prose prose-lg max-w-none">
-              <p className="text-navy-700 text-lg leading-relaxed mb-6">
-                The Biala dynasty traces its origins to the town of Biała Rawska in central Poland, 
-                where the first Biala Rebbe established his court in the 19th century. The dynasty 
-                emerged from the great Chassidic movement founded by the Baal Shem Tov, carrying 
-                forward his teachings of joy, prayer, and love for every Jew.
-              </p>
-
-              <p className="text-navy-700 text-lg leading-relaxed mb-6">
-                The founders of Biala were disciples of the great masters of Polish Chassidus, 
-                including the renowned Vorka dynasty. They developed a unique approach that 
-                emphasized heartfelt prayer, genuine love for fellow Jews, and finding the Divine 
-                spark in every aspect of life.
-              </p>
-
-              <p className="text-navy-700 text-lg leading-relaxed mb-6">
-                Like many Chassidic dynasties, Biala suffered tremendous losses during the 
-                Holocaust. The majority of its followers perished, and its sacred institutions 
-                were destroyed. However, through the miraculous survival of key leaders and their 
-                unwavering faith, the dynasty was rebuilt in the Land of Israel and around the world.
-              </p>
-
-              <p className="text-navy-700 text-lg leading-relaxed">
-                Today, Biala continues to thrive with vibrant communities on multiple continents, 
-                yeshivos and schools educating the next generation, and a publishing house 
-                dedicated to spreading the Rebbe's teachings to all who seek spiritual inspiration.
-              </p>
+            <div className="w-24 h-24 mx-auto rounded-full bg-amber-500/20 flex items-center justify-center mb-8">
+              <span className="font-hebrew text-5xl text-amber-400">ב</span>
             </div>
+            
+            <h1 className="font-display text-4xl lg:text-5xl font-bold mb-6">
+              The Biala Dynasty
+              <span className="block font-hebrew text-3xl text-amber-400 mt-2">חסידות ביאלא</span>
+            </h1>
+            
+            <p className="text-gray-300 text-lg leading-relaxed max-w-3xl mx-auto">
+              For over 150 years, the Biala dynasty has illuminated Jewish life with its unique 
+              approach to Chassidus, emphasizing joy, love of fellow Jews, and deep devotion to Hashem.
+            </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Rebbes Section */}
-      <section className="py-20 bg-cream-100">
+      {/* History */}
+      <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="font-display text-4xl font-bold text-navy-900 mb-4">
-              The <span className="text-gradient">Rebbes</span> of Biala
-            </h2>
-            <p className="text-xl text-navy-600 max-w-2xl mx-auto">
-              Generations of Torah leadership
-            </p>
-          </motion.div>
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="font-display text-4xl font-bold text-gray-900 mb-6">
+                Our History
+              </h2>
+              <div className="space-y-4 text-gray-600 leading-relaxed">
+                <p>
+                  The Biala dynasty traces its origins to the town of Biala Podlaska in Poland, 
+                  where Rebbe Yaakov Yitzchak Rabinowitz established a new path in Chassidus 
+                  in the mid-19th century.
+                </p>
+                <p>
+                  A descendant of the great Chassidic masters, the first Biala Rebbe drew from 
+                  the wells of Pshischa and Kotzk while developing his own unique approach 
+                  characterized by deep joy and love of every Jew.
+                </p>
+                <p>
+                  Despite the devastation of the Holocaust, the dynasty was rebuilt in Eretz 
+                  Yisroel by the Mevaser Tov, who inspired a new generation and established 
+                  thriving communities that continue to flourish today.
+                </p>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="absolute -inset-4 bg-amber-100 rounded-3xl -rotate-3"></div>
+              <div className="relative bg-white rounded-2xl p-8 shadow-lg">
+                <div className="flex items-center gap-4 mb-6">
+                  <Calendar className="text-amber-600" size={24} />
+                  <h3 className="font-semibold text-xl text-gray-900">Key Milestones</h3>
+                </div>
+                <ul className="space-y-4">
+                  {[
+                    { year: '1850s', event: 'Dynasty founded in Biala, Poland' },
+                    { year: '1905', event: 'Leadership passed to second generation' },
+                    { year: '1939', event: 'Community devastated by Holocaust' },
+                    { year: '1950s', event: 'Rebuilt in Eretz Yisroel' },
+                    { year: 'Today', event: 'Thriving communities worldwide' },
+                  ].map((item) => (
+                    <li key={item.year} className="flex gap-4">
+                      <span className="text-amber-600 font-semibold w-20 shrink-0">{item.year}</span>
+                      <span className="text-gray-600">{item.event}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          <div className="grid md:grid-cols-2 gap-8">
+      {/* Rebbes */}
+      <section className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="font-display text-4xl font-bold text-gray-900 mb-4">
+              The Biala Rebbes
+            </h2>
+            <p className="text-gray-500 max-w-2xl mx-auto">
+              A chain of holy leaders who have guided the Biala community through generations
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {rebbes.map((rebbe, index) => (
               <motion.div
                 key={rebbe.name}
@@ -141,178 +154,111 @@ export default function AboutBialaPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="card overflow-hidden"
+                className="card p-6 text-center"
               >
-                <div className="flex flex-col sm:flex-row">
-                  <div className="sm:w-40 h-48 sm:h-auto shrink-0 bg-navy-900">
-                    <img
-                      src={rebbe.image}
-                      alt={rebbe.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = 'https://placehold.co/200x250/1A2035/C9A008?text=Rebbe';
-                      }}
-                    />
-                  </div>
-                  <div className="p-6 flex-1">
-                    <h3 className="font-display text-xl font-bold text-navy-900 mb-1">
-                      {rebbe.name}
-                    </h3>
-                    <p className="font-hebrew text-gold-700 text-sm mb-1">{rebbe.hebrewName}</p>
-                    <p className="text-navy-500 text-sm mb-3 flex items-center gap-1">
-                      <Calendar size={14} />
-                      {rebbe.period}
-                    </p>
-                    <p className="text-navy-600 text-sm">{rebbe.description}</p>
-                  </div>
+                <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center mb-4">
+                  <span className="font-hebrew text-xl text-amber-400">{rebbe.hebrewName.substring(0, 2)}</span>
                 </div>
+                <h3 className="font-semibold text-lg text-gray-900 mb-1">{rebbe.name}</h3>
+                <p className="font-hebrew text-sm text-amber-600 mb-1">{rebbe.hebrewName}</p>
+                <p className="text-xs text-gray-400 mb-3">{rebbe.years}</p>
+                <p className="text-sm text-gray-500">{rebbe.description}</p>
               </motion.div>
             ))}
           </div>
 
           <div className="text-center mt-12">
-            <Link to="/about/rebbe" className="btn-secondary inline-flex items-center gap-2">
-              Learn More About the Mevaser Tov
+            <Link to="/about/rebbe" className="btn-secondary">
+              Learn About the Mevaser Tov
               <ChevronRight size={18} />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Communities Section */}
-      <section className="py-20">
+      {/* Communities */}
+      <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="font-display text-4xl font-bold text-navy-900 mb-4">
-              Global <span className="text-gradient">Communities</span>
+          <div className="text-center mb-16">
+            <h2 className="font-display text-4xl font-bold text-gray-900 mb-4">
+              Our Communities
             </h2>
-            <p className="text-xl text-navy-600 max-w-2xl mx-auto">
-              Biala communities flourish around the world
+            <p className="text-gray-500 max-w-2xl mx-auto">
+              Vibrant Biala communities flourish around the world
             </p>
-          </motion.div>
+          </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-6">
             {communities.map((community, index) => (
               <motion.div
-                key={community.location}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                key={community.name}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.05 }}
-                className="card p-6"
+                className="card p-6 text-center hover:shadow-lg"
               >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gold-100 flex items-center justify-center shrink-0">
-                    <MapPin size={20} className="text-gold-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-lg font-bold text-navy-900">
-                      {community.location}
-                    </h3>
-                    <p className="text-gold-600 text-sm mb-2">{community.country}</p>
-                    <div className="flex items-center gap-2 text-navy-600 text-sm mb-1">
-                      <Users size={14} />
-                      {community.members} families
-                    </div>
-                    <div className="flex items-center gap-2 text-navy-600 text-sm">
-                      <Building2 size={14} />
-                      {community.institutions}
-                    </div>
-                  </div>
-                </div>
+                <MapPin className="mx-auto text-amber-500 mb-3" size={24} />
+                <h3 className="font-semibold text-gray-900">{community.name}</h3>
+                <p className="text-sm text-gray-500">{community.country}</p>
+                <p className="text-xs text-amber-600 mt-2">{community.members}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Institutions Section */}
-      <section className="py-20 bg-gradient-to-br from-navy-900 via-navy-950 to-navy-900 text-cream-100">
+      {/* Institutions */}
+      <section className="py-24 bg-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <div className="text-center mb-16">
             <h2 className="font-display text-4xl font-bold mb-4">
-              Our <span className="text-gold-400">Institutions</span>
+              Institutions & Organizations
             </h2>
-          </motion.div>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              A network of educational and charitable institutions serving our communities
+            </p>
+          </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Building2,
-                title: 'Batei Medrash',
-                description: 'Houses of study and prayer serving as the spiritual centers of each community.'
-              },
-              {
-                icon: BookOpen,
-                title: 'Yeshivos & Schools',
-                description: 'Educational institutions nurturing the next generation in Torah and Chassidus.'
-              },
-              {
-                icon: Users,
-                title: 'Kollelim',
-                description: 'Advanced study programs for married scholars dedicated to Torah learning.'
-              }
-            ].map((institution, index) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {institutions.map((inst, index) => (
               <motion.div
-                key={institution.title}
+                key={inst.name}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="text-center"
+                className="bg-gray-800 rounded-2xl p-6 border border-gray-700"
               >
-                <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gold-500/20 border-2 border-gold-500/50 flex items-center justify-center">
-                  <institution.icon size={32} className="text-gold-400" />
+                <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4">
+                  {inst.type === 'Education' && <BookOpen className="text-amber-400" size={24} />}
+                  {inst.type === 'Torah Study' && <BookOpen className="text-amber-400" size={24} />}
+                  {inst.type === 'Children\'s Education' && <Users className="text-amber-400" size={24} />}
+                  {inst.type === 'Social Services' && <Users className="text-amber-400" size={24} />}
                 </div>
-                <h3 className="font-display text-2xl font-bold text-gold-400 mb-3">
-                  {institution.title}
-                </h3>
-                <p className="text-cream-300">{institution.description}</p>
+                <h3 className="font-semibold text-white mb-1">{inst.name}</h3>
+                <p className="text-sm text-gray-400">{inst.type}</p>
+                <p className="text-xs text-amber-400 mt-2">{inst.location}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="ornate-border p-12 text-center"
-          >
-            <h2 className="font-display text-3xl font-bold text-navy-900 mb-4">
-              Join Our Community
-            </h2>
-            <p className="text-lg text-navy-600 mb-8 max-w-xl mx-auto">
-              Whether through learning the Rebbe's teachings, visiting our communities, 
-              or supporting our institutions, we welcome you to be part of the Biala family.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/books" className="btn-primary">
-                Explore Our Books
-              </Link>
-              <Link to="/contact" className="btn-secondary">
-                Contact Us
-              </Link>
-            </div>
-          </motion.div>
+      {/* CTA */}
+      <section className="py-16 bg-gradient-to-r from-amber-500 to-amber-600">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="font-display text-3xl font-bold text-gray-900 mb-4">
+            Support Our Institutions
+          </h2>
+          <p className="text-gray-800 mb-8 max-w-2xl mx-auto">
+            Help us continue the sacred work of spreading Torah and supporting our communities
+          </p>
+          <Link to="/donate" className="btn-primary bg-gray-900 hover:bg-gray-800">
+            Make a Donation
+          </Link>
         </div>
       </section>
     </div>
   );
 }
-

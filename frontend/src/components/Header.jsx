@@ -1,47 +1,22 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Menu, X, ChevronDown, BookOpen, Users, Newspaper, Video, Gift, Mail } from 'lucide-react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
-  { 
-    label: 'Books', 
-    path: '/books',
-    icon: BookOpen 
-  },
+  { label: 'Books', path: '/books' },
   { 
     label: 'About',
-    icon: Users,
     children: [
       { label: 'The Mevaser Tov', path: '/about/rebbe' },
       { label: 'Biala Hasidism', path: '/about/biala' },
     ]
   },
-  { 
-    label: 'News & Updates', 
-    path: '/news',
-    icon: Newspaper 
-  },
-  { 
-    label: 'Publications', 
-    path: '/publications',
-    icon: BookOpen 
-  },
-  { 
-    label: 'Media', 
-    path: '/media',
-    icon: Video 
-  },
-  { 
-    label: 'Donate', 
-    path: '/donate',
-    icon: Gift 
-  },
-  { 
-    label: 'Contact', 
-    path: '/contact',
-    icon: Mail 
-  },
+  { label: 'News', path: '/news' },
+  { label: 'Publications', path: '/publications' },
+  { label: 'Media', path: '/media' },
+  { label: 'Donate', path: '/donate' },
+  { label: 'Contact', path: '/contact' },
 ];
 
 export default function Header() {
@@ -51,15 +26,15 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 glass">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gold-400 via-gold-500 to-gold-600 flex items-center justify-center shadow-lg shadow-gold-500/20">
-              <span className="font-hebrew text-2xl font-bold text-navy-950">ב</span>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+              <span className="font-hebrew text-xl font-bold text-gray-900">ב</span>
             </div>
-            <div className="hidden sm:block">
-              <h1 className="font-display text-lg font-bold bg-gradient-to-r from-navy-900 to-navy-700 bg-clip-text text-transparent">Biala Publishing</h1>
-              <p className="text-[10px] text-gold-600 font-hebrew tracking-wider">הוצאת ספרים ביאלא</p>
+            <div>
+              <span className="font-display font-bold text-gray-900">Biala</span>
+              <span className="font-display font-bold text-amber-600"> Publishing</span>
             </div>
           </Link>
 
@@ -73,26 +48,25 @@ export default function Header() {
                   onMouseEnter={() => setActiveDropdown(item.label)}
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
-                  <button className="nav-link flex items-center gap-1 px-4">
+                  <button className="nav-link flex items-center gap-1 px-4 py-2">
                     {item.label}
                     <ChevronDown size={14} className={`transition-transform ${activeDropdown === item.label ? 'rotate-180' : ''}`} />
                   </button>
                   <AnimatePresence>
                     {activeDropdown === item.label && (
                       <motion.div
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
+                        exit={{ opacity: 0, y: 8 }}
+                        transition={{ duration: 0.15 }}
                         className="absolute top-full left-0 pt-2"
                       >
-                        <div className="glass rounded-lg overflow-hidden shadow-xl min-w-[200px]">
+                        <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden min-w-[200px]">
                           {item.children.map((child) => (
                             <NavLink
                               key={child.path}
                               to={child.path}
-                              className={({ isActive }) => 
-                                `block px-5 py-3 text-sm hover:bg-gold-100 transition-colors ${isActive ? 'bg-gold-100 text-gold-700' : 'text-navy-800'}`
-                              }
+                              className="block px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                             >
                               {child.label}
                             </NavLink>
@@ -106,7 +80,7 @@ export default function Header() {
                 <NavLink 
                   key={item.path} 
                   to={item.path} 
-                  className={({ isActive }) => `nav-link px-4 ${isActive ? 'active text-gold-600' : ''}`}
+                  className={({ isActive }) => `nav-link px-4 py-2 rounded-lg hover:bg-gray-100 ${isActive ? 'text-amber-600 bg-amber-50' : ''}`}
                 >
                   {item.label}
                 </NavLink>
@@ -116,7 +90,7 @@ export default function Header() {
 
           {/* Mobile menu button */}
           <button 
-            className="lg:hidden p-2 rounded-lg hover:bg-cream-200 transition-colors"
+            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -131,13 +105,13 @@ export default function Header() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden overflow-hidden glass border-t border-gold-200"
+            className="lg:hidden overflow-hidden bg-white border-t border-gray-100"
           >
             <nav className="max-w-7xl mx-auto px-4 py-4 space-y-1">
               {navItems.map((item) => (
                 item.children ? (
                   <div key={item.label} className="space-y-1">
-                    <div className="px-4 py-2 text-sm font-display uppercase tracking-wider text-navy-500">
+                    <div className="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
                       {item.label}
                     </div>
                     {item.children.map((child) => (
@@ -145,9 +119,7 @@ export default function Header() {
                         key={child.path}
                         to={child.path}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={({ isActive }) => 
-                          `flex items-center gap-3 px-6 py-3 rounded-lg transition-colors ${isActive ? 'bg-gold-100 text-gold-700' : 'hover:bg-cream-200 text-navy-700'}`
-                        }
+                        className="block px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50"
                       >
                         {child.label}
                       </NavLink>
@@ -159,10 +131,9 @@ export default function Header() {
                     to={item.path}
                     onClick={() => setMobileMenuOpen(false)}
                     className={({ isActive }) => 
-                      `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive ? 'bg-gold-100 text-gold-700' : 'hover:bg-cream-200 text-navy-700'}`
+                      `block px-4 py-3 rounded-lg transition-colors ${isActive ? 'bg-amber-50 text-amber-600' : 'text-gray-600 hover:bg-gray-50'}`
                     }
                   >
-                    <item.icon size={18} />
                     {item.label}
                   </NavLink>
                 )
@@ -174,4 +145,3 @@ export default function Header() {
     </header>
   );
 }
-

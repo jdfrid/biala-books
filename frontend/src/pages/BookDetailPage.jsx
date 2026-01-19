@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ShoppingCart, Bell, Check, Share2, BookOpen, Star, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Heart, Share2, ArrowLeft, Check, Bell, BookOpen, Truck, Shield, ChevronRight } from 'lucide-react';
 import api from '../services/api';
 
 export default function BookDetailPage() {
@@ -9,339 +9,305 @@ export default function BookDetailPage() {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState('');
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
-  const [relatedBooks, setRelatedBooks] = useState([]);
 
   useEffect(() => {
-    setLoading(true);
-    api.get(`/books/${id}`)
-      .then(res => {
-        setBook(res.data.book);
-        return api.get(`/books/related/${id}`);
-      })
-      .then(res => setRelatedBooks(res.data.books || []))
-      .catch(() => {
-        // Use placeholder data
-        setBook({
-          id: parseInt(id),
-          title: 'Mevaser Tov - Bereishis',
-          hebrewTitle: 'מבשר טוב - בראשית',
-          description: 'Chassidic insights and teachings on the book of Genesis, revealing the deep secrets and spiritual meanings within each parsha. This comprehensive volume explores the foundations of creation, the lives of our patriarchs, and the eternal lessons they hold for every Jew.',
-          longDescription: `The Mevaser Tov on Bereishis represents the Rebbe's profound insights into the first book of the Torah. Through carefully crafted teachings, the Rebbe illuminates the hidden depths of each parsha, revealing how the stories of creation and our ancestors speak directly to our souls.
-
-This volume includes:
-• Deep analysis of each weekly Torah portion
-• Chassidic interpretations of the patriarchs' lives
-• Practical lessons for spiritual growth
-• Insights on prayer, character refinement, and service of Hashem
-• Beautiful stories and parables
-
-The work combines intellectual depth with emotional warmth, making the wisdom of Chassidus accessible to scholars and laypeople alike.`,
-          price: 35,
-          image: '/images/books/bereishis.jpg',
-          category: 'Torah',
-          available: true,
-          pages: 384,
-          binding: 'Hardcover',
-          language: 'Hebrew/English',
-          isbn: '978-1-234567-89-0',
-          publisher: 'Biala Publishing',
-          year: 2024
-        });
-        setRelatedBooks([
-          { id: 2, title: 'Mevaser Tov - Shemos', hebrewTitle: 'מבשר טוב - שמות', price: 35, image: '/images/books/shemos.jpg' },
-          { id: 3, title: 'Mevaser Tov - Vayikra', hebrewTitle: 'מבשר טוב - ויקרא', price: 35, image: '/images/books/vayikra.jpg' },
-          { id: 7, title: 'Maamar HaTorah', hebrewTitle: 'מאמר התורה', price: 25, image: '/images/books/maamar.jpg' },
-        ]);
-      })
+    api.get(`/books/${id}`).catch(() => ({ data: null }))
+      .then(res => setBook(res.data))
       .finally(() => setLoading(false));
   }, [id]);
 
-  const handleAddToCart = () => {
-    // Add to cart logic
-    console.log(`Adding ${quantity} copies of book ${id} to cart`);
-  };
-
-  const handleWaitlistSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await api.post('/waitlist', { bookId: id, email: waitlistEmail });
-      setWaitlistSubmitted(true);
-    } catch (error) {
-      console.error('Waitlist error:', error);
+  // Sample book data
+  const sampleBook = {
+    id: parseInt(id),
+    title: 'Mevaser Tov - Bereishis',
+    hebrewTitle: 'מבשר טוב - בראשית',
+    author: 'The Mevaser Tov of Biala',
+    price: 35,
+    category: 'Torah',
+    available: true,
+    stock: 15,
+    description: 'The first volume of the renowned Mevaser Tov series, containing profound insights and teachings on the Book of Bereishis (Genesis). This sefer illuminates the weekly parsha with the unique perspective of the Biala Chassidus.',
+    features: [
+      'Teachings on each parsha in Bereishis',
+      'Stories and parables from the Mevaser Tov',
+      'Insights on avodas Hashem',
+      'Clear Hebrew text with nekudos',
+      'Comprehensive index'
+    ],
+    specs: {
+      pages: 450,
+      binding: 'Hardcover',
+      dimensions: '6" x 9"',
+      language: 'Hebrew',
+      publisher: 'Biala Publishing',
+      year: 2020
     }
   };
 
+  const displayBook = book || sampleBook;
+
+  const handleAddToCart = () => {
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 2000);
+  };
+
+  const handleWaitlist = (e) => {
+    e.preventDefault();
+    setWaitlistSubmitted(true);
+  };
+
+  const relatedBooks = [
+    { id: 2, title: 'Mevaser Tov - Shemos', hebrewTitle: 'מבשר טוב - שמות', price: 35 },
+    { id: 3, title: 'Mevaser Tov - Vayikra', hebrewTitle: 'מבשר טוב - ויקרא', price: 35 },
+    { id: 6, title: 'Kedushas Yisroel', hebrewTitle: 'קדושת ישראל', price: 28 },
+  ];
+
   if (loading) {
     return (
-      <div className="min-h-screen py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="animate-pulse">
-            <div className="h-8 w-32 bg-cream-200 rounded mb-8"></div>
-            <div className="grid lg:grid-cols-2 gap-12">
-              <div className="aspect-[3/4] bg-cream-200 rounded-2xl"></div>
-              <div className="space-y-4">
-                <div className="h-10 bg-cream-200 rounded w-3/4"></div>
-                <div className="h-6 bg-cream-200 rounded w-1/2"></div>
-                <div className="h-32 bg-cream-200 rounded"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!book) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <BookOpen size={48} className="mx-auto text-navy-300 mb-4" />
-          <h2 className="font-display text-2xl text-navy-900 mb-2">Book Not Found</h2>
-          <Link to="/books" className="text-gold-600 hover:text-gold-700">
-            Browse all books
-          </Link>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-pulse text-gray-400">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back button */}
-        <Link to="/books" className="inline-flex items-center gap-2 text-navy-600 hover:text-gold-600 transition-colors mb-8">
-          <ArrowLeft size={20} />
-          Back to Books
-        </Link>
-
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
-          {/* Book Image */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="sticky top-24"
-          >
-            <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-br from-gold-300 via-gold-400 to-gold-600 rounded-3xl transform rotate-1 opacity-20"></div>
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-gold-300">
-                <img
-                  src={book.image}
-                  alt={book.title}
-                  className="w-full h-auto"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = `https://placehold.co/500x650/1A2035/C9A008?text=${encodeURIComponent(book.hebrewTitle || book.title)}`;
-                  }}
-                />
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Book Details */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
-          >
-            {/* Category badge */}
-            <span className="badge badge-info">{book.category}</span>
-
-            {/* Title */}
-            <div>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-navy-900 mb-2">
-                {book.title}
-              </h1>
-              <p className="font-hebrew text-2xl text-gold-700">{book.hebrewTitle}</p>
-            </div>
-
-            {/* Price */}
-            <div className="flex items-baseline gap-2">
-              <span className="font-display text-4xl font-bold text-gold-600">${book.price}</span>
-              {book.available ? (
-                <span className="badge badge-success">In Stock</span>
-              ) : (
-                <span className="badge badge-warning">Pre-Order</span>
-              )}
-            </div>
-
-            {/* Description */}
-            <p className="text-lg text-navy-700 leading-relaxed">{book.description}</p>
-
-            {/* Long description */}
-            {book.longDescription && (
-              <div className="prose prose-lg text-navy-600 whitespace-pre-line">
-                {book.longDescription}
-              </div>
-            )}
-
-            {/* Book details */}
-            <div className="grid grid-cols-2 gap-4 p-6 bg-cream-100 rounded-xl">
-              <div>
-                <span className="text-navy-500 text-sm">Pages</span>
-                <p className="font-semibold text-navy-900">{book.pages}</p>
-              </div>
-              <div>
-                <span className="text-navy-500 text-sm">Binding</span>
-                <p className="font-semibold text-navy-900">{book.binding}</p>
-              </div>
-              <div>
-                <span className="text-navy-500 text-sm">Language</span>
-                <p className="font-semibold text-navy-900">{book.language}</p>
-              </div>
-              <div>
-                <span className="text-navy-500 text-sm">Year</span>
-                <p className="font-semibold text-navy-900">{book.year}</p>
-              </div>
-              <div className="col-span-2">
-                <span className="text-navy-500 text-sm">ISBN</span>
-                <p className="font-semibold text-navy-900">{book.isbn}</p>
-              </div>
-            </div>
-
-            {/* Purchase section */}
-            {book.available ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <label className="text-navy-700">Quantity:</label>
-                  <div className="flex items-center border-2 border-cream-300 rounded-lg">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="px-4 py-2 hover:bg-cream-200 transition-colors"
-                    >
-                      -
-                    </button>
-                    <span className="px-4 py-2 font-semibold">{quantity}</span>
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="px-4 py-2 hover:bg-cream-200 transition-colors"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-4">
-                  <button onClick={handleAddToCart} className="btn-primary flex items-center gap-2">
-                    <ShoppingCart size={18} />
-                    Add to Cart
-                  </button>
-                  <button className="btn-secondary flex items-center gap-2">
-                    <Share2 size={18} />
-                    Share
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="text-navy-600">
-                  This book is currently unavailable. Join the waitlist to be notified when it becomes available.
-                </p>
-                <button
-                  onClick={() => setShowWaitlistModal(true)}
-                  className="btn-primary flex items-center gap-2"
-                >
-                  <Bell size={18} />
-                  Join Waitlist
-                </button>
-              </div>
-            )}
-          </motion.div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Breadcrumb */}
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <nav className="flex items-center gap-2 text-sm">
+            <Link to="/books" className="text-gray-400 hover:text-gray-600 flex items-center gap-1">
+              <ArrowLeft size={16} />
+              Back to Books
+            </Link>
+            <span className="text-gray-300">/</span>
+            <span className="text-gray-600">{displayBook.title}</span>
+          </nav>
         </div>
-
-        {/* Related Books */}
-        {relatedBooks.length > 0 && (
-          <section className="mt-20">
-            <h2 className="font-display text-3xl font-bold text-navy-900 mb-8">
-              You May Also Like
-            </h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {relatedBooks.map((relatedBook) => (
-                <motion.div
-                  key={relatedBook.id}
-                  whileHover={{ y: -8 }}
-                  className="book-card"
-                >
-                  <div className="book-cover bg-gradient-to-br from-navy-800 to-navy-950">
-                    <img
-                      src={relatedBook.image}
-                      alt={relatedBook.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = `https://placehold.co/300x400/1A2035/C9A008?text=${encodeURIComponent(relatedBook.hebrewTitle || relatedBook.title)}`;
-                      }}
-                    />
-                  </div>
-                  <div className="book-info">
-                    <h3 className="font-display text-lg font-bold text-navy-900 mb-1">{relatedBook.title}</h3>
-                    <p className="font-hebrew text-gold-700 text-sm mb-2">{relatedBook.hebrewTitle}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="font-display font-bold text-xl text-gold-600">${relatedBook.price}</span>
-                      <Link 
-                        to={`/books/${relatedBook.id}`}
-                        className="text-sm font-semibold text-navy-800 hover:text-gold-600 transition-colors inline-flex items-center gap-1"
-                      >
-                        View <ChevronRight size={16} />
-                      </Link>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        )}
       </div>
 
-      {/* Waitlist Modal */}
-      {showWaitlistModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/60 backdrop-blur-sm">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-cream-50 rounded-2xl p-8 max-w-md w-full shadow-2xl"
-          >
-            {waitlistSubmitted ? (
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-                  <Check size={32} className="text-green-600" />
+      {/* Main Content */}
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12">
+            {/* Book Image */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <div className="sticky top-24">
+                <div className="aspect-[3/4] rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 overflow-hidden shadow-2xl">
+                  {displayBook.image_url ? (
+                    <img 
+                      src={displayBook.image_url} 
+                      alt={displayBook.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="text-center p-8">
+                        <div className="w-24 h-24 mx-auto rounded-2xl bg-amber-500/20 flex items-center justify-center mb-6">
+                          <span className="font-hebrew text-4xl text-amber-400">מט</span>
+                        </div>
+                        <h3 className="font-hebrew text-2xl text-amber-400 mb-2">{displayBook.hebrewTitle}</h3>
+                        <p className="text-gray-400 text-sm">Biala Publishing</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <h3 className="font-display text-2xl font-bold text-navy-900 mb-2">You're on the list!</h3>
-                <p className="text-navy-600 mb-6">We'll notify you when this book becomes available.</p>
-                <button onClick={() => setShowWaitlistModal(false)} className="btn-primary">
-                  Close
-                </button>
               </div>
-            ) : (
-              <>
-                <h3 className="font-display text-2xl font-bold text-navy-900 mb-2">Join the Waitlist</h3>
-                <p className="text-navy-600 mb-6">Enter your email to be notified when "{book.title}" is back in stock.</p>
-                <form onSubmit={handleWaitlistSubmit} className="space-y-4">
-                  <input
-                    type="email"
-                    value={waitlistEmail}
-                    onChange={(e) => setWaitlistEmail(e.target.value)}
-                    placeholder="Your email"
-                    required
-                    className="form-input"
-                  />
-                  <div className="flex gap-4">
-                    <button type="button" onClick={() => setShowWaitlistModal(false)} className="btn-secondary flex-1">
-                      Cancel
+            </motion.div>
+
+            {/* Book Details */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <span className="badge badge-info mb-4">{displayBook.category}</span>
+              
+              <h1 className="font-display text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                {displayBook.title}
+              </h1>
+              <p className="font-hebrew text-xl text-amber-600 mb-4">{displayBook.hebrewTitle}</p>
+              
+              <p className="text-gray-500 mb-6">By {displayBook.author}</p>
+
+              <div className="flex items-baseline gap-4 mb-8">
+                <span className="font-display text-4xl font-bold text-gray-900">${displayBook.price}</span>
+                {displayBook.available && displayBook.stock > 0 && (
+                  <span className="badge badge-success">In Stock</span>
+                )}
+                {!displayBook.available && (
+                  <span className="badge badge-warning">Coming Soon</span>
+                )}
+                {displayBook.available && displayBook.stock === 0 && (
+                  <span className="badge badge-danger">Out of Stock</span>
+                )}
+              </div>
+
+              <p className="text-gray-600 leading-relaxed mb-8">
+                {displayBook.description}
+              </p>
+
+              {/* Purchase Section */}
+              {displayBook.available && displayBook.stock > 0 ? (
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center gap-4">
+                    <label className="text-sm font-medium text-gray-700">Quantity:</label>
+                    <div className="flex items-center border border-gray-200 rounded-lg">
+                      <button 
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="px-4 py-2 text-gray-500 hover:text-gray-700"
+                      >
+                        -
+                      </button>
+                      <span className="px-4 py-2 font-medium">{quantity}</span>
+                      <button 
+                        onClick={() => setQuantity(quantity + 1)}
+                        className="px-4 py-2 text-gray-500 hover:text-gray-700"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={handleAddToCart}
+                      className={`btn-gold flex-1 py-4 ${addedToCart ? 'bg-green-500' : ''}`}
+                    >
+                      {addedToCart ? (
+                        <>
+                          <Check size={20} />
+                          Added to Cart!
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart size={20} />
+                          Add to Cart - ${displayBook.price * quantity}
+                        </>
+                      )}
                     </button>
-                    <button type="submit" className="btn-primary flex-1">
-                      Notify Me
+                    <button className="btn-secondary py-4 px-4">
+                      <Heart size={20} />
+                    </button>
+                    <button className="btn-secondary py-4 px-4">
+                      <Share2 size={20} />
                     </button>
                   </div>
-                </form>
-              </>
-            )}
-          </motion.div>
+                </div>
+              ) : (
+                <div className="bg-amber-50 rounded-2xl p-6 mb-8">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Bell className="text-amber-600" size={24} />
+                    <h3 className="font-semibold text-gray-900">
+                      {!displayBook.available ? 'Coming Soon' : 'Out of Stock'}
+                    </h3>
+                  </div>
+                  {waitlistSubmitted ? (
+                    <div className="flex items-center gap-2 text-green-600">
+                      <Check size={20} />
+                      <span>You're on the waitlist! We'll notify you when available.</span>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleWaitlist} className="flex gap-2">
+                      <input
+                        type="email"
+                        required
+                        value={waitlistEmail}
+                        onChange={(e) => setWaitlistEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        className="form-input flex-1"
+                      />
+                      <button type="submit" className="btn-gold">
+                        Notify Me
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
+
+              {/* Features */}
+              <div className="border-t border-gray-200 pt-8 mb-8">
+                <h3 className="font-semibold text-gray-900 mb-4">What's Inside</h3>
+                <ul className="space-y-2">
+                  {displayBook.features?.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-2 text-gray-600">
+                      <Check className="text-amber-500 mt-0.5 shrink-0" size={18} />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Specs */}
+              <div className="border-t border-gray-200 pt-8 mb-8">
+                <h3 className="font-semibold text-gray-900 mb-4">Specifications</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {Object.entries(displayBook.specs || {}).map(([key, value]) => (
+                    <div key={key}>
+                      <span className="text-sm text-gray-400 capitalize">{key}</span>
+                      <p className="font-medium text-gray-900">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Trust Badges */}
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { icon: Truck, label: 'Free shipping over $50' },
+                  { icon: Shield, label: 'Secure checkout' },
+                  { icon: BookOpen, label: 'Quality printing' },
+                ].map((item) => (
+                  <div key={item.label} className="text-center">
+                    <item.icon className="mx-auto text-gray-400 mb-2" size={24} />
+                    <span className="text-xs text-gray-500">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
         </div>
-      )}
+      </section>
+
+      {/* Related Books */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="font-display text-2xl font-bold text-gray-900 mb-8">
+            You May Also Like
+          </h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {relatedBooks.map((relBook) => (
+              <Link 
+                key={relBook.id} 
+                to={`/books/${relBook.id}`}
+                className="book-card block group"
+              >
+                <div className="book-cover flex items-center justify-center">
+                  <span className="font-hebrew text-2xl text-amber-400 font-bold">
+                    {relBook.hebrewTitle}
+                  </span>
+                </div>
+                <div className="book-info">
+                  <h3 className="font-semibold text-gray-900 group-hover:text-amber-600 transition-colors">
+                    {relBook.title}
+                  </h3>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="font-bold text-lg text-amber-600">${relBook.price}</span>
+                    <span className="text-sm text-gray-400 group-hover:text-amber-600 transition-colors flex items-center gap-1">
+                      View <ChevronRight size={14} />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
-

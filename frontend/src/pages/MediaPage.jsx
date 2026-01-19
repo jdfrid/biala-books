@@ -1,309 +1,243 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Pause, Volume2, Download, Filter, X, Music, Video, Mic } from 'lucide-react';
-import api from '../services/api';
+import { Play, Headphones, Video, Filter, Search, Clock, Calendar } from 'lucide-react';
 
 export default function MediaPage() {
-  const [media, setMedia] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedType, setSelectedType] = useState('all');
-  const [playingId, setPlayingId] = useState(null);
-  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [activeTab, setActiveTab] = useState('videos');
+  const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    api.get('/media')
-      .then(res => setMedia(res.data.media || []))
-      .catch(() => setMedia(placeholderMedia))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const placeholderMedia = [
-    {
-      id: 1,
-      title: 'Friday Night Tish - Parshas Bereishis',
-      type: 'video',
-      duration: '1:23:45',
-      date: '2026-01-12',
-      thumbnail: '/images/media/tish-1.jpg',
-      description: 'Experience the spiritual atmosphere of the Rebbe\'s tish.',
-      url: '#'
-    },
-    {
-      id: 2,
-      title: 'Torah Shiur - The Power of Emunah',
-      type: 'video',
-      duration: '45:30',
-      date: '2026-01-10',
-      thumbnail: '/images/media/shiur-1.jpg',
-      description: 'A profound teaching on the importance of faith in daily life.',
-      url: '#'
-    },
-    {
-      id: 3,
-      title: 'Havdalah Ceremony',
-      type: 'video',
-      duration: '12:15',
-      date: '2026-01-05',
-      thumbnail: '/images/media/havdalah.jpg',
-      description: 'The beautiful Biala tradition of ushering out the Shabbos Queen.',
-      url: '#'
-    },
-    {
-      id: 4,
-      title: 'Nigun - Keili Ata',
-      type: 'audio',
-      duration: '8:20',
-      date: '2026-01-08',
-      thumbnail: '/images/media/nigun-1.jpg',
-      description: 'A classic Biala melody sung at the tish.',
-      url: '#'
-    },
-    {
-      id: 5,
-      title: 'Nigun - Yismach Moshe',
-      type: 'audio',
-      duration: '6:45',
-      date: '2026-01-03',
-      thumbnail: '/images/media/nigun-2.jpg',
-      description: 'Traditional Shabbos morning melody.',
-      url: '#'
-    },
-    {
-      id: 6,
-      title: 'Recorded Shiur - Parshas Shemos',
-      type: 'audio',
-      duration: '52:10',
-      date: '2025-12-28',
-      thumbnail: '/images/media/shiur-audio.jpg',
-      description: 'Audio recording of the Rebbe\'s weekly Torah lecture.',
-      url: '#'
-    },
-    {
-      id: 7,
-      title: 'Chanukah Lighting 5786',
-      type: 'video',
-      duration: '25:30',
-      date: '2025-12-20',
-      thumbnail: '/images/media/chanukah.jpg',
-      description: 'The Rebbe lighting the Chanukah menorah.',
-      url: '#'
-    },
-    {
-      id: 8,
-      title: 'Stories of the Tzaddikim',
-      type: 'audio',
-      duration: '35:00',
-      date: '2025-12-15',
-      thumbnail: '/images/media/stories.jpg',
-      description: 'Inspiring stories from previous Biala Rebbes.',
-      url: '#'
-    },
+  const videos = [
+    { id: 1, title: 'Friday Night Tish - Parshas Bereishis', duration: '45:30', date: '2026-01-10', category: 'Tish' },
+    { id: 2, title: 'Shabbos Morning Davening', duration: '1:20:00', date: '2026-01-11', category: 'Prayer' },
+    { id: 3, title: 'Torah Shiur - Emunah', duration: '32:15', date: '2026-01-08', category: 'Shiur' },
+    { id: 4, title: 'Chanukah Celebration 5786', duration: '55:00', date: '2025-12-25', category: 'Events' },
+    { id: 5, title: 'Yahrtzeit of the Mevaser Tov', duration: '1:10:00', date: '2025-12-15', category: 'Events' },
+    { id: 6, title: 'Weekly Parsha Insights', duration: '28:45', date: '2026-01-05', category: 'Shiur' },
   ];
 
-  const displayMedia = media.length > 0 ? media : placeholderMedia;
-  const types = ['all', 'video', 'audio'];
-  
-  const filteredMedia = selectedType === 'all' 
-    ? displayMedia 
-    : displayMedia.filter(m => m.type === selectedType);
+  const audio = [
+    { id: 1, title: 'Niggun - Mevaser Tov', duration: '8:30', category: 'Niggunim' },
+    { id: 2, title: 'Shabbos Zemiros', duration: '25:00', category: 'Niggunim' },
+    { id: 3, title: 'Torah Reading - Weekly Parsha', duration: '15:20', category: 'Torah' },
+    { id: 4, title: 'Chassidic Melodies Collection', duration: '45:00', category: 'Niggunim' },
+    { id: 5, title: 'Havdalah Ceremony', duration: '12:00', category: 'Prayer' },
+    { id: 6, title: 'Stories from the Mevaser Tov', duration: '35:00', category: 'Stories' },
+  ];
 
-  const getTypeIcon = (type) => {
-    switch (type) {
-      case 'video': return Video;
-      case 'audio': return Music;
-      default: return Mic;
-    }
-  };
+  const categories = ['All', 'Tish', 'Shiur', 'Prayer', 'Events', 'Niggunim'];
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-navy-900 mb-4">
-            Media <span className="text-gradient">Gallery</span>
-          </h1>
-          <p className="text-xl text-navy-600 max-w-2xl mx-auto">
-            Videos, recordings, and music from the Biala community
-          </p>
-        </motion.div>
-
-        {/* Type Filters */}
-        <div className="flex justify-center gap-4 mb-12">
-          {types.map((type) => {
-            const Icon = type === 'all' ? Filter : getTypeIcon(type);
-            return (
-              <button
-                key={type}
-                onClick={() => setSelectedType(type)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-display text-sm uppercase tracking-wider transition-all ${
-                  selectedType === type
-                    ? 'bg-gold-500 text-navy-950'
-                    : 'bg-cream-200 text-navy-700 hover:bg-cream-300'
-                }`}
-              >
-                <Icon size={18} />
-                {type === 'all' ? 'All Media' : type}
-              </button>
-            );
-          })}
-        </div>
-
-        {loading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="card animate-pulse">
-                <div className="aspect-video bg-cream-200"></div>
-                <div className="p-6 space-y-3">
-                  <div className="h-6 bg-cream-200 rounded w-3/4"></div>
-                  <div className="h-4 bg-cream-200 rounded w-1/2"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredMedia.map((item, index) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="card group cursor-pointer"
-                onClick={() => item.type === 'video' && setSelectedVideo(item)}
-              >
-                <div className="relative aspect-video overflow-hidden bg-navy-900">
-                  <img
-                    src={item.thumbnail}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = `https://placehold.co/640x360/1A2035/C9A008?text=${item.type === 'video' ? 'Video' : 'Audio'}`;
-                    }}
-                  />
-                  
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-navy-950/40 group-hover:bg-navy-950/60 transition-colors flex items-center justify-center">
-                    <div className="w-16 h-16 rounded-full bg-gold-500 flex items-center justify-center transform group-hover:scale-110 transition-transform">
-                      <Play size={28} className="text-navy-950 ml-1" fill="currentColor" />
-                    </div>
-                  </div>
-
-                  {/* Type badge */}
-                  <div className="absolute top-3 left-3">
-                    <span className={`badge ${item.type === 'video' ? 'badge-info' : 'badge-success'} flex items-center gap-1`}>
-                      {item.type === 'video' ? <Video size={12} /> : <Music size={12} />}
-                      {item.type}
-                    </span>
-                  </div>
-
-                  {/* Duration */}
-                  <div className="absolute bottom-3 right-3 px-2 py-1 rounded bg-navy-950/80 text-cream-100 text-sm">
-                    {item.duration}
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <h3 className="font-display text-lg font-bold text-navy-900 mb-2 group-hover:text-gold-700 transition-colors line-clamp-2">
-                    {item.title}
-                  </h3>
-                  <p className="text-navy-600 text-sm line-clamp-2 mb-3">{item.description}</p>
-                  <p className="text-navy-400 text-xs">
-                    {new Date(item.date).toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'short', 
-                      day: 'numeric' 
-                    })}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
-
-        {/* Audio Player Section */}
-        {filteredMedia.some(m => m.type === 'audio') && (
-          <section className="mt-20">
-            <h2 className="font-display text-2xl font-bold text-navy-900 mb-8">
-              Featured <span className="text-gradient">Recordings</span>
-            </h2>
-            <div className="space-y-4">
-              {filteredMedia.filter(m => m.type === 'audio').slice(0, 5).map((item) => (
-                <div 
-                  key={item.id}
-                  className="card p-4 flex items-center gap-4"
-                >
-                  <button 
-                    onClick={() => setPlayingId(playingId === item.id ? null : item.id)}
-                    className="w-12 h-12 rounded-full bg-gold-500 flex items-center justify-center shrink-0 hover:bg-gold-400 transition-colors"
-                  >
-                    {playingId === item.id ? (
-                      <Pause size={20} className="text-navy-950" fill="currentColor" />
-                    ) : (
-                      <Play size={20} className="text-navy-950 ml-0.5" fill="currentColor" />
-                    )}
-                  </button>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-navy-900 truncate">{item.title}</h4>
-                    <p className="text-navy-500 text-sm">{item.duration}</p>
-                  </div>
-                  <button className="p-2 rounded-lg hover:bg-cream-200 transition-colors">
-                    <Download size={18} className="text-navy-600" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
-
-      {/* Video Modal */}
-      {selectedVideo && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/90"
-          onClick={() => setSelectedVideo(null)}
-        >
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero */}
+      <section className="bg-gradient-to-b from-gray-900 to-gray-800 text-white py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-4xl"
-            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
           >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-display text-xl font-bold text-cream-100">
-                {selectedVideo.title}
-              </h3>
-              <button 
-                onClick={() => setSelectedVideo(null)}
-                className="p-2 rounded-lg hover:bg-cream-100/10 transition-colors"
-              >
-                <X size={24} className="text-cream-100" />
-              </button>
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-500/20 flex items-center justify-center mb-6">
+              <Play className="text-amber-400" size={32} />
             </div>
-            <div className="aspect-video bg-navy-900 rounded-lg overflow-hidden">
-              {/* In a real app, this would be an actual video player */}
-              <div className="w-full h-full flex items-center justify-center">
-                <img
-                  src={selectedVideo.thumbnail}
-                  alt={selectedVideo.title}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = 'https://placehold.co/1280x720/1A2035/C9A008?text=Video+Player';
-                  }}
-                />
-              </div>
-            </div>
-            <p className="mt-4 text-cream-300">{selectedVideo.description}</p>
+            <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
+              Media Gallery
+            </h1>
+            <p className="text-gray-400 max-w-2xl mx-auto text-lg">
+              Experience the beauty of Biala through videos, recordings, and niggunim
+            </p>
           </motion.div>
         </div>
-      )}
+      </section>
+
+      {/* Tabs & Search */}
+      <section className="py-8 bg-white border-b border-gray-100 sticky top-16 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Tabs */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveTab('videos')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all ${
+                  activeTab === 'videos'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <Video size={18} />
+                Videos
+              </button>
+              <button
+                onClick={() => setActiveTab('audio')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all ${
+                  activeTab === 'audio'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <Headphones size={18} />
+                Audio
+              </button>
+            </div>
+
+            {/* Search */}
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="Search media..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="form-input pl-11 py-2.5"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Content */}
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {activeTab === 'videos' ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {videos.map((video, index) => (
+                <motion.div
+                  key={video.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="card group cursor-pointer"
+                >
+                  <div className="relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="font-hebrew text-4xl text-amber-400/30">
+                        {video.category === 'Tish' ? 'טיש' : video.category === 'Shiur' ? 'שיעור' : 'וידאו'}
+                      </span>
+                    </div>
+                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+                      <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center transform group-hover:scale-110 transition-transform">
+                        <Play size={24} className="text-gray-900 ml-1" fill="currentColor" />
+                      </div>
+                    </div>
+                    <div className="absolute bottom-3 right-3 px-2 py-1 rounded bg-black/70 text-white text-xs flex items-center gap-1">
+                      <Clock size={12} />
+                      {video.duration}
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <span className="text-xs text-amber-600 font-medium uppercase tracking-wide">
+                      {video.category}
+                    </span>
+                    <h3 className="font-semibold text-gray-900 mt-1 group-hover:text-amber-600 transition-colors">
+                      {video.title}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-2 text-gray-400 text-sm">
+                      <Calendar size={14} />
+                      {new Date(video.date).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      })}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {audio.map((track, index) => (
+                <motion.div
+                  key={track.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="card p-4 flex items-center gap-4 group cursor-pointer hover:shadow-lg"
+                >
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <Play size={24} className="text-gray-900 ml-0.5" fill="currentColor" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs text-amber-600 font-medium uppercase tracking-wide">
+                      {track.category}
+                    </span>
+                    <h3 className="font-semibold text-gray-900 truncate group-hover:text-amber-600 transition-colors">
+                      {track.title}
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-400 text-sm shrink-0">
+                    <Clock size={14} />
+                    {track.duration}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Featured Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="font-display text-3xl font-bold text-gray-900 mb-4">
+              Featured Content
+            </h2>
+            <p className="text-gray-500">Our most popular recordings</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="relative aspect-video rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden group cursor-pointer">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="font-hebrew text-6xl text-amber-400/20">טיש</span>
+              </div>
+              <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center transform group-hover:scale-110 transition-transform">
+                  <Play size={36} className="text-gray-900 ml-1" fill="currentColor" />
+                </div>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+                <h3 className="font-semibold text-xl text-white">Complete Shabbos Tish</h3>
+                <p className="text-gray-300 text-sm mt-1">Experience a full Friday night tish with niggunim and divrei Torah</p>
+              </div>
+            </div>
+
+            <div className="relative aspect-video rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 overflow-hidden group cursor-pointer">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Headphones size={80} className="text-white/20" />
+              </div>
+              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center transform group-hover:scale-110 transition-transform">
+                  <Play size={36} className="text-gray-900 ml-1" fill="currentColor" />
+                </div>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/60 to-transparent">
+                <h3 className="font-semibold text-xl text-white">Classic Biala Niggunim</h3>
+                <p className="text-gray-200 text-sm mt-1">A collection of traditional melodies passed down through generations</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Subscribe CTA */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="font-display text-3xl font-bold text-gray-900 mb-4">
+            Never Miss New Content
+          </h2>
+          <p className="text-gray-500 mb-8">
+            Subscribe to our channel and get notified when new videos and recordings are uploaded
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button className="btn-gold">
+              <Video size={18} />
+              Subscribe on YouTube
+            </button>
+            <button className="btn-secondary">
+              <Headphones size={18} />
+              Follow on Spotify
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
-
