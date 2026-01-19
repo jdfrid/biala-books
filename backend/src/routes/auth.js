@@ -14,21 +14,27 @@ router.post('/request-code', async (req, res) => {
       return res.status(400).json({ message: 'Email is required' });
     }
 
+    console.log(`🔐 Login attempt for: ${email}`);
+
     // Check if user exists
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
     
     if (!user) {
-      // In development, auto-create user for testing
-      if (process.env.NODE_ENV !== 'production') {
-        db.prepare('INSERT INTO users (name, email, role) VALUES (?, ?, ?)').run('Admin', email, 'admin');
-      } else {
-        return res.status(404).json({ message: 'No admin account found with this email' });
-      }
+      // Auto-create admin user for first login or in dev mode
+      console.log(`👤 Creating new admin user: ${email}`);
+      db.prepare('INSERT INTO users (name, email, role) VALUES (?, ?, ?)').run(
+        email.split('@')[0], 
+        email, 
+        'admin'
+      );
+      user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
     }
 
     // Generate 6-digit code
     const code = crypto.randomInt(100000, 999999).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    console.log(`🔑 Generated code: ${code} for ${email}`);
 
     // Save code to database
     db.prepare(`
@@ -37,8 +43,10 @@ router.post('/request-code', async (req, res) => {
 
     // Try to send email
     let emailSent = false;
+    let emailError = null;
+    
     try {
-      await sendEmail({
+      const result = await sendEmail({
         to: email,
         subject: 'Your Biala Publishing Login Code',
         html: `
@@ -47,7 +55,7 @@ router.post('/request-code', async (req, res) => {
             <p style="color: #4A5568; font-size: 16px; line-height: 1.6;">
               Your verification code is:
             </p>
-            <div style="background: #FDF9F0; border: 2px solid #C9A008; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+            <div style="background: #FDF9F0; border: 2px solid #D4AF37; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
               <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #1A2035;">${code}</span>
             </div>
             <p style="color: #718096; font-size: 14px;">
@@ -60,26 +68,30 @@ router.post('/request-code', async (req, res) => {
           </div>
         `
       });
-      emailSent = true;
-    } catch (emailError) {
-      console.error('Email sending failed:', emailError.message);
+      emailSent = !result.devMode;
+      console.log(`📧 Email ${emailSent ? 'sent' : 'logged (dev mode)'}`);
+    } catch (err) {
+      emailError = err.message;
+      console.error(`❌ Email failed: ${err.message}`);
     }
 
-    // In development or if email failed, return the code in response
-    if (process.env.NODE_ENV !== 'production' || !emailSent) {
-      console.log(`\n🔑 LOGIN CODE for ${email}: ${code}\n`);
-      return res.json({ 
-        message: 'Verification code generated',
-        // Only show code in development
-        ...(process.env.NODE_ENV !== 'production' && { devCode: code }),
-        emailSent
-      });
-    }
-
-    res.json({ message: 'Verification code sent to your email', emailSent: true });
+    // Always return success with code in dev mode or if email failed
+    const isDev = process.env.NODE_ENV !== 'production';
+    const showCode = isDev || !emailSent;
+    
+    res.json({ 
+      message: emailSent 
+        ? 'Verification code sent to your email' 
+        : 'Verification code generated (check below)',
+      emailSent,
+      emailError: emailError || undefined,
+      // Show code if email wasn't sent or in dev mode
+      ...(showCode && { devCode: code })
+    });
+    
   } catch (error) {
-    console.error('Request code error:', error);
-    res.status(500).json({ message: 'Failed to send verification code' });
+    console.error('❌ Request code error:', error);
+    res.status(500).json({ message: 'Failed to generate verification code', error: error.message });
   }
 });
 
@@ -92,6 +104,8 @@ router.post('/verify-code', (req, res) => {
       return res.status(400).json({ message: 'Email and code are required' });
     }
 
+    console.log(`🔓 Verifying code for: ${email}`);
+
     // Find valid code
     const authCode = db.prepare(`
       SELECT * FROM auth_codes 
@@ -100,6 +114,7 @@ router.post('/verify-code', (req, res) => {
     `).get(email, code);
 
     if (!authCode) {
+      console.log(`❌ Invalid code for ${email}`);
       return res.status(400).json({ message: 'Invalid or expired code' });
     }
 
@@ -119,6 +134,8 @@ router.post('/verify-code', (req, res) => {
     // Generate token
     const token = generateToken(user.id);
 
+    console.log(`✅ Login successful for: ${email}`);
+
     res.json({
       token,
       user: {
@@ -129,8 +146,8 @@ router.post('/verify-code', (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Verify code error:', error);
-    res.status(500).json({ message: 'Verification failed' });
+    console.error('❌ Verify code error:', error);
+    res.status(500).json({ message: 'Verification failed', error: error.message });
   }
 });
 

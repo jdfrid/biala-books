@@ -38,7 +38,19 @@ app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'development',
+    smtp: process.env.SMTP_USER ? 'configured' : 'not configured'
+  });
+});
+
+// SMTP test endpoint (for debugging)
+app.get('/api/test-smtp', async (req, res) => {
+  const { testConnection } = require('./services/email');
+  const result = await testConnection();
+  res.json(result);
 });
 
 // Start server
