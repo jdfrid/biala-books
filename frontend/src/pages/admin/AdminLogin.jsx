@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Key, BookOpen, ArrowRight, Shield } from 'lucide-react';
+import { Mail, Key, BookOpen, ArrowRight, Shield, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function AdminLogin() {
@@ -10,6 +10,7 @@ export default function AdminLogin() {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [devCode, setDevCode] = useState(null); // For development mode
   
   const { requestLoginCode, verifyCode } = useAuth();
   const navigate = useNavigate();
@@ -18,9 +19,14 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setDevCode(null);
 
     try {
-      await requestLoginCode(email);
+      const response = await requestLoginCode(email);
+      // If dev code is returned, show it
+      if (response?.devCode) {
+        setDevCode(response.devCode);
+      }
       setStep('code');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send verification code');
@@ -66,6 +72,13 @@ export default function AdminLogin() {
       setCode(['', '', '', '', '', '']);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Auto-fill code in dev mode
+  const handleAutoFill = () => {
+    if (devCode) {
+      setCode(devCode.split(''));
     }
   };
 
@@ -150,10 +163,36 @@ export default function AdminLogin() {
                   Verify Your Identity
                 </h2>
                 <p className="text-gray-500 text-sm">
-                  We've sent a 6-digit code to<br />
-                  <span className="font-semibold text-gray-800">{email}</span>
+                  Enter the 6-digit code
+                  {devCode ? (
+                    <span className="block text-amber-600 font-medium mt-1">
+                      Dev Mode - Code shown below
+                    </span>
+                  ) : (
+                    <span className="block">sent to <span className="font-semibold text-gray-800">{email}</span></span>
+                  )}
                 </p>
               </div>
+
+              {/* Dev Mode Code Display */}
+              {devCode && (
+                <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div className="flex items-center gap-2 text-amber-800 mb-2">
+                    <AlertCircle size={16} />
+                    <span className="text-sm font-medium">Development Mode</span>
+                  </div>
+                  <div className="text-center">
+                    <span className="font-mono text-2xl font-bold text-gray-900 tracking-widest">{devCode}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAutoFill}
+                    className="w-full mt-3 text-sm text-amber-600 hover:text-amber-700 font-medium"
+                  >
+                    Click to auto-fill
+                  </button>
+                </div>
+              )}
 
               <form onSubmit={handleCodeSubmit} className="space-y-6">
                 <div>
@@ -203,6 +242,7 @@ export default function AdminLogin() {
                       setStep('email');
                       setCode(['', '', '', '', '', '']);
                       setError('');
+                      setDevCode(null);
                     }}
                     className="text-amber-600 text-sm hover:text-amber-700"
                   >

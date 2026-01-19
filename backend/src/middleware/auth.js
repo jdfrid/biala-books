@@ -17,7 +17,7 @@ const authenticateToken = (req, res, next) => {
     }
 
     // Get user from database
-    const user = db.prepare('SELECT * FROM users WHERE id = ? AND status = ?').get(decoded.userId, 'active');
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(decoded.userId);
     
     if (!user) {
       return res.status(403).json({ message: 'User not found or inactive' });

@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
   const requestLoginCode = async (email) => {
     const res = await api.post('/auth/request-code', { email });
     setPendingEmail(email);
-    return res.data;
+    return res.data; // Return the response data (includes devCode in dev mode)
   };
 
   const verifyCode = async (code) => {
@@ -61,4 +61,3 @@ export function useAuth() {
   }
   return context;
 }
-

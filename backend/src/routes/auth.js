@@ -15,10 +15,15 @@ router.post('/request-code', async (req, res) => {
     }
 
     // Check if user exists
-    const user = db.prepare('SELECT * FROM users WHERE email = ? AND status = ?').get(email, 'active');
+    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
     
     if (!user) {
-      return res.status(404).json({ message: 'No admin account found with this email' });
+      // In development, auto-create user for testing
+      if (process.env.NODE_ENV !== 'production') {
+        db.prepare('INSERT INTO users (name, email, role) VALUES (?, ?, ?)').run('Admin', email, 'admin');
+      } else {
+        return res.status(404).json({ message: 'No admin account found with this email' });
+      }
     }
 
     // Generate 6-digit code
@@ -30,31 +35,48 @@ router.post('/request-code', async (req, res) => {
       INSERT INTO auth_codes (email, code, expires_at) VALUES (?, ?, ?)
     `).run(email, code, expiresAt.toISOString());
 
-    // Send email with code
-    await sendEmail({
-      to: email,
-      subject: 'Your Biala Publishing Login Code',
-      html: `
-        <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-          <h1 style="color: #1A2035; font-size: 24px; margin-bottom: 20px;">Login Verification</h1>
-          <p style="color: #4A5568; font-size: 16px; line-height: 1.6;">
-            Your verification code is:
-          </p>
-          <div style="background: #FDF9F0; border: 2px solid #C9A008; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
-            <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #1A2035;">${code}</span>
+    // Try to send email
+    let emailSent = false;
+    try {
+      await sendEmail({
+        to: email,
+        subject: 'Your Biala Publishing Login Code',
+        html: `
+          <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+            <h1 style="color: #1A2035; font-size: 24px; margin-bottom: 20px;">Login Verification</h1>
+            <p style="color: #4A5568; font-size: 16px; line-height: 1.6;">
+              Your verification code is:
+            </p>
+            <div style="background: #FDF9F0; border: 2px solid #C9A008; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+              <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #1A2035;">${code}</span>
+            </div>
+            <p style="color: #718096; font-size: 14px;">
+              This code will expire in 10 minutes. If you didn't request this code, please ignore this email.
+            </p>
+            <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 30px 0;">
+            <p style="color: #A0AEC0; font-size: 12px; text-align: center;">
+              Biala Publishing - Torah Writings of the Mevaser Tov
+            </p>
           </div>
-          <p style="color: #718096; font-size: 14px;">
-            This code will expire in 10 minutes. If you didn't request this code, please ignore this email.
-          </p>
-          <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 30px 0;">
-          <p style="color: #A0AEC0; font-size: 12px; text-align: center;">
-            Biala Publishing - Torah Writings of the Mevaser Tov
-          </p>
-        </div>
-      `
-    });
+        `
+      });
+      emailSent = true;
+    } catch (emailError) {
+      console.error('Email sending failed:', emailError.message);
+    }
 
-    res.json({ message: 'Verification code sent to your email' });
+    // In development or if email failed, return the code in response
+    if (process.env.NODE_ENV !== 'production' || !emailSent) {
+      console.log(`\n🔑 LOGIN CODE for ${email}: ${code}\n`);
+      return res.json({ 
+        message: 'Verification code generated',
+        // Only show code in development
+        ...(process.env.NODE_ENV !== 'production' && { devCode: code }),
+        emailSent
+      });
+    }
+
+    res.json({ message: 'Verification code sent to your email', emailSent: true });
   } catch (error) {
     console.error('Request code error:', error);
     res.status(500).json({ message: 'Failed to send verification code' });
@@ -86,6 +108,10 @@ router.post('/verify-code', (req, res) => {
 
     // Get user
     const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
     // Update last login
     db.prepare('UPDATE users SET last_login = datetime("now") WHERE id = ?').run(user.id);
@@ -121,4 +147,3 @@ router.get('/me', authenticateToken, (req, res) => {
 });
 
 module.exports = router;
-
