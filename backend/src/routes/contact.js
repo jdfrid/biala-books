@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/database');
+const { pool } = require('../config/database');
 const { sendEmail } = require('../services/email');
 
 // Send contact message
@@ -13,9 +13,10 @@ router.post('/', async (req, res) => {
     }
 
     // Save to database
-    db.prepare(`
-      INSERT INTO contact_messages (name, email, subject, message) VALUES (?, ?, ?, ?)
-    `).run(name, email, subject, message);
+    await pool.query(
+      'INSERT INTO contact_messages (name, email, subject, message) VALUES ($1, $2, $3, $4)',
+      [name, email, subject, message]
+    );
 
     // Send notification to admin
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@bialapublishing.com';
@@ -62,5 +63,3 @@ router.post('/', async (req, res) => {
 });
 
 module.exports = router;
-
-

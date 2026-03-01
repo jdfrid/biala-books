@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/database');
+const { pool } = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 const { sendEmail } = require('../services/email');
 
@@ -16,9 +16,9 @@ router.post('/', async (req, res) => {
     // Calculate totals
     let subtotal = 0;
     for (const item of items) {
-      const book = db.prepare('SELECT price FROM books WHERE id = ?').get(item.bookId);
-      if (book) {
-        subtotal += book.price * item.quantity;
+      const bookResult = await pool.query('SELECT price FROM books WHERE id = $1', [item.bookId]);
+      if (bookResult.rows.length > 0) {
+        subtotal += bookResult.rows[0].price * item.quantity;
       }
     }
     const shipping = 10; // Flat rate
@@ -28,14 +28,15 @@ router.post('/', async (req, res) => {
     const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
 
     // Save order
-    const result = db.prepare(`
+    const result = await pool.query(`
       INSERT INTO orders (order_number, customer_name, email, phone, shipping_address, items, subtotal, shipping, total)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(orderNumber, customerName, email, phone || null, shippingAddress, JSON.stringify(items), subtotal, shipping, total);
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING id
+    `, [orderNumber, customerName, email, phone || null, shippingAddress, JSON.stringify(items), subtotal, shipping, total]);
 
     // Update book order counts
     for (const item of items) {
-      db.prepare('UPDATE books SET orders_count = orders_count + ? WHERE id = ?').run(item.quantity, item.bookId);
+      await pool.query('UPDATE books SET orders_count = orders_count + $1 WHERE id = $2', [item.quantity, item.bookId]);
     }
 
     // Send confirmation email
@@ -73,18 +74,18 @@ router.post('/', async (req, res) => {
 });
 
 // Get order status
-router.get('/:orderNumber', (req, res) => {
+router.get('/:orderNumber', async (req, res) => {
   try {
-    const order = db.prepare(`
+    const result = await pool.query(`
       SELECT order_number, customer_name, status, tracking_number, date
-      FROM orders WHERE order_number = ?
-    `).get(req.params.orderNumber);
+      FROM orders WHERE order_number = $1
+    `, [req.params.orderNumber]);
 
-    if (!order) {
+    if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    res.json({ order });
+    res.json({ order: result.rows[0] });
   } catch (error) {
     console.error('Get order error:', error);
     res.status(500).json({ message: 'Failed to fetch order' });
@@ -92,5 +93,3 @@ router.get('/:orderNumber', (req, res) => {
 });
 
 module.exports = router;
-
-

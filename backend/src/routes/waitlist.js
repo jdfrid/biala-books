@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/database');
+const { pool } = require('../config/database');
 const { sendEmail } = require('../services/email');
 
 // Join waitlist
@@ -13,21 +13,20 @@ router.post('/', async (req, res) => {
     }
 
     // Check if book exists
-    const book = db.prepare('SELECT * FROM books WHERE id = ?').get(bookId);
-    if (!book) {
+    const bookResult = await pool.query('SELECT * FROM books WHERE id = $1', [bookId]);
+    if (bookResult.rows.length === 0) {
       return res.status(404).json({ message: 'Book not found' });
     }
+    const book = bookResult.rows[0];
 
     // Check if already on waitlist
-    const existing = db.prepare('SELECT * FROM waitlist WHERE book_id = ? AND email = ?').get(bookId, email);
-    if (existing) {
+    const existing = await pool.query('SELECT * FROM waitlist WHERE book_id = $1 AND email = $2', [bookId, email]);
+    if (existing.rows.length > 0) {
       return res.status(400).json({ message: 'Already on waitlist for this book' });
     }
 
     // Add to waitlist
-    db.prepare(`
-      INSERT INTO waitlist (book_id, email) VALUES (?, ?)
-    `).run(bookId, email);
+    await pool.query('INSERT INTO waitlist (book_id, email) VALUES ($1, $2)', [bookId, email]);
 
     // Send confirmation email
     await sendEmail({
@@ -58,5 +57,3 @@ router.post('/', async (req, res) => {
 });
 
 module.exports = router;
-
-

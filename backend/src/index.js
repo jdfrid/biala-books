@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
+const { pool, initDatabase } = require('./config/database');
 const authRoutes = require('./routes/auth');
 const booksRoutes = require('./routes/books');
 const newsRoutes = require('./routes/news');
@@ -47,6 +48,7 @@ app.get('/api/health', (req, res) => {
     status: 'ok', 
     timestamp: new Date().toISOString(),
     env: process.env.NODE_ENV || 'development',
+    database: process.env.DATABASE_URL ? 'PostgreSQL' : 'not configured',
     smtp: process.env.SMTP_USER ? 'configured' : 'not configured'
   });
 });
@@ -59,26 +61,25 @@ app.get('/api/test-smtp', async (req, res) => {
 });
 
 // Debug endpoint - show auth codes
-app.get('/api/debug/codes/:email', (req, res) => {
+app.get('/api/debug/codes/:email', async (req, res) => {
   try {
-    const db = require('./config/database');
     const email = req.params.email.toLowerCase().trim();
     
-    const codes = db.prepare(`
+    const codes = await pool.query(`
       SELECT id, email, code, used, expires_at, created_at 
       FROM auth_codes 
-      WHERE email = ? 
+      WHERE email = $1 
       ORDER BY created_at DESC 
       LIMIT 10
-    `).all(email);
+    `, [email]);
     
-    const users = db.prepare('SELECT id, name, email, role FROM users WHERE email = ?').all(email);
+    const users = await pool.query('SELECT id, name, email, role FROM users WHERE email = $1', [email]);
     
     res.json({ 
       email,
-      codesCount: codes.length,
-      codes,
-      users,
+      codesCount: codes.rows.length,
+      codes: codes.rows,
+      users: users.rows,
       serverTime: new Date().toISOString()
     });
   } catch (error) {
@@ -87,9 +88,8 @@ app.get('/api/debug/codes/:email', (req, res) => {
 });
 
 // Direct login endpoint (bypass 2FA for testing)
-app.post('/api/direct-login', (req, res) => {
+app.post('/api/direct-login', async (req, res) => {
   try {
-    const db = require('./config/database');
     const { generateToken } = require('./middleware/auth');
     let { email } = req.body;
     
@@ -100,12 +100,13 @@ app.post('/api/direct-login', (req, res) => {
     email = email.toLowerCase().trim();
     
     // Create user if not exists
-    let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    let userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    let user = userResult.rows[0];
+    
     if (!user) {
-      db.prepare('INSERT INTO users (name, email, role) VALUES (?, ?, ?)').run(
-        email.split('@')[0], email, 'admin'
-      );
-      user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+      await pool.query('INSERT INTO users (name, email, role) VALUES ($1, $2, $3)', [email.split('@')[0], email, 'admin']);
+      userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+      user = userResult.rows[0];
     }
     
     // Generate token directly
@@ -126,7 +127,17 @@ app.post('/api/direct-login', (req, res) => {
   }
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Biala Books API running on port ${PORT}`);
-});
+// Initialize database and start server
+async function startServer() {
+  try {
+    await initDatabase();
+    app.listen(PORT, () => {
+      console.log(`🚀 Biala Books API running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();

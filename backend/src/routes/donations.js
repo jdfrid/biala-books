@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/database');
+const { pool } = require('../config/database');
 const { sendEmail } = require('../services/email');
 
 // Process donation (placeholder - integrate with Stripe)
@@ -13,10 +13,11 @@ router.post('/', async (req, res) => {
     }
 
     // Save donation
-    const result = db.prepare(`
+    const result = await pool.query(`
       INSERT INTO donations (donor_name, email, amount, cause, dedication, recurring)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(name, email || null, amount, cause, dedication || null, recurring ? 1 : 0);
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id
+    `, [name, email || null, amount, cause, dedication || null, recurring ? 1 : 0]);
 
     // Send confirmation email
     if (email) {
@@ -52,7 +53,7 @@ router.post('/', async (req, res) => {
       html: `<p>New donation from ${name}: $${amount} to ${cause}</p>`
     });
 
-    res.json({ message: 'Donation processed successfully', id: result.lastInsertRowid });
+    res.json({ message: 'Donation processed successfully', id: result.rows[0].id });
   } catch (error) {
     console.error('Donation error:', error);
     res.status(500).json({ message: 'Failed to process donation' });
@@ -60,5 +61,3 @@ router.post('/', async (req, res) => {
 });
 
 module.exports = router;
-
-

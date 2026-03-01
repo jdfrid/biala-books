@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/database');
+const { pool } = require('../config/database');
 
 // Get all media
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const media = db.prepare(`
+    const result = await pool.query(`
       SELECT id, title, description, type, duration, url, thumbnail_url as thumbnail, views, date
       FROM media ORDER BY date DESC
-    `).all();
-    res.json({ media });
+    `);
+    res.json({ media: result.rows });
   } catch (error) {
     console.error('Get media error:', error);
     res.status(500).json({ message: 'Failed to fetch media' });
@@ -17,15 +17,15 @@ router.get('/', (req, res) => {
 });
 
 // Get single media item
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const item = db.prepare('SELECT * FROM media WHERE id = ?').get(req.params.id);
-    if (!item) {
+    const result = await pool.query('SELECT * FROM media WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Media not found' });
     }
     // Increment views
-    db.prepare('UPDATE media SET views = views + 1 WHERE id = ?').run(req.params.id);
-    res.json({ media: item });
+    await pool.query('UPDATE media SET views = views + 1 WHERE id = $1', [req.params.id]);
+    res.json({ media: result.rows[0] });
   } catch (error) {
     console.error('Get media error:', error);
     res.status(500).json({ message: 'Failed to fetch media' });
@@ -33,5 +33,3 @@ router.get('/:id', (req, res) => {
 });
 
 module.exports = router;
-
-

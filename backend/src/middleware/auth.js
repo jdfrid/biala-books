@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
-const db = require('../config/database');
+const { pool } = require('../config/database');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'biala-books-secret-key-change-in-production';
 
-const authenticateToken = (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -11,13 +11,12 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ message: 'Authentication required' });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid or expired token' });
-    }
-
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
     // Get user from database
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(decoded.userId);
+    const result = await pool.query('SELECT * FROM users WHERE id = $1', [decoded.userId]);
+    const user = result.rows[0];
     
     if (!user) {
       return res.status(403).json({ message: 'User not found or inactive' });
@@ -25,7 +24,9 @@ const authenticateToken = (req, res, next) => {
 
     req.user = user;
     next();
-  });
+  } catch (err) {
+    return res.status(403).json({ message: 'Invalid or expired token' });
+  }
 };
 
 const requireAdmin = (req, res, next) => {
@@ -40,4 +41,3 @@ const generateToken = (userId) => {
 };
 
 module.exports = { authenticateToken, requireAdmin, generateToken, JWT_SECRET };
-

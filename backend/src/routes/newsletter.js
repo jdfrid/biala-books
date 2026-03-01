@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/database');
+const { pool } = require('../config/database');
 const { sendEmail } = require('../services/email');
 
 // Subscribe to newsletter
@@ -13,15 +13,16 @@ router.post('/subscribe', async (req, res) => {
     }
 
     // Check if already subscribed
-    const existing = db.prepare('SELECT * FROM subscribers WHERE email = ?').get(email);
-    if (existing) {
+    const existing = await pool.query('SELECT * FROM subscribers WHERE email = $1', [email]);
+    if (existing.rows.length > 0) {
       return res.status(400).json({ message: 'Email already subscribed' });
     }
 
     // Add subscriber
-    db.prepare(`
-      INSERT INTO subscribers (name, email, source) VALUES (?, ?, ?)
-    `).run(name || null, email, source);
+    await pool.query(
+      'INSERT INTO subscribers (name, email, source) VALUES ($1, $2, $3)',
+      [name || null, email, source]
+    );
 
     // Send welcome email
     await sendEmail({
@@ -66,5 +67,3 @@ router.post('/subscribe', async (req, res) => {
 });
 
 module.exports = router;
-
-

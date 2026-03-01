@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
-const db = require('../config/database');
+const { pool } = require('../config/database');
 const { authenticateToken, generateToken } = require('../middleware/auth');
 const { sendEmail } = require('../services/email');
 
@@ -14,23 +14,21 @@ router.post('/request-code', async (req, res) => {
       return res.status(400).json({ message: 'Email is required' });
     }
 
-    // Normalize email to lowercase
     email = email.toLowerCase().trim();
-
     console.log(`🔐 Login attempt for: ${email}`);
 
     // Check if user exists
-    let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    let userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    let user = userResult.rows[0];
     
     if (!user) {
-      // Auto-create admin user for first login or in dev mode
       console.log(`👤 Creating new admin user: ${email}`);
-      db.prepare('INSERT INTO users (name, email, role) VALUES (?, ?, ?)').run(
-        email.split('@')[0], 
-        email, 
-        'admin'
+      await pool.query(
+        'INSERT INTO users (name, email, role) VALUES ($1, $2, $3)',
+        [email.split('@')[0], email, 'admin']
       );
-      user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+      userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+      user = userResult.rows[0];
     }
 
     // Generate 6-digit code
@@ -40,9 +38,10 @@ router.post('/request-code', async (req, res) => {
     console.log(`🔑 Generated code: ${code} for ${email}`);
 
     // Save code to database
-    db.prepare(`
-      INSERT INTO auth_codes (email, code, expires_at) VALUES (?, ?, ?)
-    `).run(email, code, expiresAt.toISOString());
+    await pool.query(
+      'INSERT INTO auth_codes (email, code, expires_at) VALUES ($1, $2, $3)',
+      [email, code, expiresAt]
+    );
 
     // Try to send email
     let emailSent = false;
@@ -78,14 +77,12 @@ router.post('/request-code', async (req, res) => {
       console.error(`❌ Email failed: ${err.message}`);
     }
 
-    // Always show code for now (debugging)
     res.json({ 
       message: emailSent 
         ? 'Verification code sent to your email' 
         : 'Verification code generated (check below)',
       emailSent,
       emailError: emailError || undefined,
-      // Always show code for debugging
       devCode: code
     });
     
@@ -96,7 +93,7 @@ router.post('/request-code', async (req, res) => {
 });
 
 // Verify code and login
-router.post('/verify-code', (req, res) => {
+router.post('/verify-code', async (req, res) => {
   try {
     let { email, code } = req.body;
 
@@ -104,29 +101,31 @@ router.post('/verify-code', (req, res) => {
       return res.status(400).json({ message: 'Email and code are required' });
     }
 
-    // Normalize email to lowercase
     email = email.toLowerCase().trim();
     code = code.trim();
 
     console.log(`🔓 Verifying code for: ${email}, code: ${code}`);
 
     // Find the most recent code for this email
-    const authCode = db.prepare(`
+    const authCodeResult = await pool.query(`
       SELECT * FROM auth_codes 
-      WHERE email = ? AND code = ? AND used = 0
+      WHERE email = $1 AND code = $2 AND used = 0
       ORDER BY created_at DESC LIMIT 1
-    `).get(email, code);
+    `, [email, code]);
 
+    const authCode = authCodeResult.rows[0];
     console.log(`🔍 Found auth code:`, authCode ? 'yes' : 'no');
 
     if (!authCode) {
-      // Debug: show all codes for this email
-      const allCodes = db.prepare('SELECT code, used, expires_at FROM auth_codes WHERE email = ? ORDER BY created_at DESC LIMIT 5').all(email);
-      console.log(`📋 Recent codes for ${email}:`, allCodes);
+      const allCodesResult = await pool.query(
+        'SELECT code, used, expires_at FROM auth_codes WHERE email = $1 ORDER BY created_at DESC LIMIT 5',
+        [email]
+      );
+      console.log(`📋 Recent codes for ${email}:`, allCodesResult.rows);
       return res.status(400).json({ message: 'Invalid or expired code' });
     }
 
-    // Check expiration manually (more reliable than SQLite datetime comparison)
+    // Check expiration
     const expiresAt = new Date(authCode.expires_at);
     const now = new Date();
     console.log(`⏰ Expires: ${expiresAt.toISOString()}, Now: ${now.toISOString()}`);
@@ -137,17 +136,18 @@ router.post('/verify-code', (req, res) => {
     }
 
     // Mark code as used
-    db.prepare('UPDATE auth_codes SET used = 1 WHERE id = ?').run(authCode.id);
+    await pool.query('UPDATE auth_codes SET used = 1 WHERE id = $1', [authCode.id]);
 
     // Get user
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = userResult.rows[0];
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     // Update last login
-    db.prepare('UPDATE users SET last_login = datetime("now") WHERE id = ?').run(user.id);
+    await pool.query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id]);
 
     // Generate token
     const token = generateToken(user.id);
