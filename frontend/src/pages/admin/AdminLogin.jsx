@@ -65,9 +65,12 @@ export default function AdminLogin() {
     setError('');
 
     try {
-      await verifyCode(fullCode);
+      // Pass email directly to ensure it's used
+      console.log('Submitting verification - email:', email, 'code:', fullCode);
+      await verifyCode(fullCode, email);
       navigate('/admin');
     } catch (err) {
+      console.error('Verification error:', err);
       setError(err.response?.data?.message || 'Invalid verification code');
       setCode(['', '', '', '', '', '']);
     } finally {
