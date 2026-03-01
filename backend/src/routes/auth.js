@@ -101,18 +101,32 @@ router.post('/verify-code', (req, res) => {
       return res.status(400).json({ message: 'Email and code are required' });
     }
 
-    console.log(`🔓 Verifying code for: ${email}`);
+    console.log(`🔓 Verifying code for: ${email}, code: ${code}`);
 
-    // Find valid code
+    // Find the most recent code for this email
     const authCode = db.prepare(`
       SELECT * FROM auth_codes 
-      WHERE email = ? AND code = ? AND used = 0 AND expires_at > datetime('now')
+      WHERE email = ? AND code = ? AND used = 0
       ORDER BY created_at DESC LIMIT 1
     `).get(email, code);
 
+    console.log(`🔍 Found auth code:`, authCode ? 'yes' : 'no');
+
     if (!authCode) {
-      console.log(`❌ Invalid code for ${email}`);
+      // Debug: show all codes for this email
+      const allCodes = db.prepare('SELECT code, used, expires_at FROM auth_codes WHERE email = ? ORDER BY created_at DESC LIMIT 5').all(email);
+      console.log(`📋 Recent codes for ${email}:`, allCodes);
       return res.status(400).json({ message: 'Invalid or expired code' });
+    }
+
+    // Check expiration manually (more reliable than SQLite datetime comparison)
+    const expiresAt = new Date(authCode.expires_at);
+    const now = new Date();
+    console.log(`⏰ Expires: ${expiresAt.toISOString()}, Now: ${now.toISOString()}`);
+    
+    if (now > expiresAt) {
+      console.log(`❌ Code expired for ${email}`);
+      return res.status(400).json({ message: 'Code has expired. Please request a new one.' });
     }
 
     // Mark code as used
