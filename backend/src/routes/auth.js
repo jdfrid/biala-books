@@ -8,11 +8,14 @@ const { sendEmail } = require('../services/email');
 // Request login code (2FA)
 router.post('/request-code', async (req, res) => {
   try {
-    const { email } = req.body;
+    let { email } = req.body;
 
     if (!email) {
       return res.status(400).json({ message: 'Email is required' });
     }
+
+    // Normalize email to lowercase
+    email = email.toLowerCase().trim();
 
     console.log(`🔐 Login attempt for: ${email}`);
 
@@ -95,11 +98,15 @@ router.post('/request-code', async (req, res) => {
 // Verify code and login
 router.post('/verify-code', (req, res) => {
   try {
-    const { email, code } = req.body;
+    let { email, code } = req.body;
 
     if (!email || !code) {
       return res.status(400).json({ message: 'Email and code are required' });
     }
+
+    // Normalize email to lowercase
+    email = email.toLowerCase().trim();
+    code = code.trim();
 
     console.log(`🔓 Verifying code for: ${email}, code: ${code}`);
 
