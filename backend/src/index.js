@@ -58,12 +58,46 @@ app.get('/api/test-smtp', async (req, res) => {
   res.json(result);
 });
 
-// Test login endpoint (for debugging)
-app.get('/api/test-login/:email', async (req, res) => {
+// Debug endpoint - show auth codes
+app.get('/api/debug/codes/:email', (req, res) => {
   try {
-    const { email } = req.params;
-    const crypto = require('crypto');
     const db = require('./config/database');
+    const email = req.params.email.toLowerCase().trim();
+    
+    const codes = db.prepare(`
+      SELECT id, email, code, used, expires_at, created_at 
+      FROM auth_codes 
+      WHERE email = ? 
+      ORDER BY created_at DESC 
+      LIMIT 10
+    `).all(email);
+    
+    const users = db.prepare('SELECT id, name, email, role FROM users WHERE email = ?').all(email);
+    
+    res.json({ 
+      email,
+      codesCount: codes.length,
+      codes,
+      users,
+      serverTime: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Direct login endpoint (bypass 2FA for testing)
+app.post('/api/direct-login', (req, res) => {
+  try {
+    const db = require('./config/database');
+    const { generateToken } = require('./middleware/auth');
+    let { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+    
+    email = email.toLowerCase().trim();
     
     // Create user if not exists
     let user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
@@ -71,21 +105,21 @@ app.get('/api/test-login/:email', async (req, res) => {
       db.prepare('INSERT INTO users (name, email, role) VALUES (?, ?, ?)').run(
         email.split('@')[0], email, 'admin'
       );
+      user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
     }
     
-    // Generate code
-    const code = crypto.randomInt(100000, 999999).toString();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    // Generate token directly
+    const token = generateToken(user.id);
     
-    db.prepare('INSERT INTO auth_codes (email, code, expires_at) VALUES (?, ?, ?)').run(
-      email, code, expiresAt.toISOString()
-    );
-    
-    res.json({ 
+    res.json({
       success: true,
-      email,
-      code,
-      message: 'Use this code to login'
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
