@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, BookOpen, CheckCircle } from 'lucide-react';
 import api from '../services/api';
 
-export default function NewsletterPopup() {
+export default function NewsletterPopup({ showOnlyOnHomepage = true }) {
   const [isOpen, setIsOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -12,15 +12,34 @@ export default function NewsletterPopup() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Show popup after 30 seconds if user hasn't subscribed
-    const hasSubscribed = localStorage.getItem('newsletter_subscribed');
-    const hasDismissed = sessionStorage.getItem('newsletter_dismissed');
-    
-    if (!hasSubscribed && !hasDismissed) {
-      const timer = setTimeout(() => setIsOpen(true), 30000);
-      return () => clearTimeout(timer);
+    // Only show on homepage if prop is set
+    if (showOnlyOnHomepage && window.location.pathname !== '/') {
+      return;
     }
-  }, []);
+
+    const hasSubscribed = localStorage.getItem('newsletter_subscribed');
+    if (hasSubscribed) return;
+
+    const lastShown = localStorage.getItem('newsletter_last_shown');
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+    const now = Date.now();
+
+    // Show only if: first visit OR more than a week since last shown
+    if (lastShown) {
+      const timeSinceLastShown = now - parseInt(lastShown);
+      if (timeSinceLastShown < oneWeekMs) {
+        return; // Less than a week, don't show
+      }
+    }
+
+    // Show popup after 30 seconds
+    const timer = setTimeout(() => {
+      setIsOpen(true);
+      localStorage.setItem('newsletter_last_shown', now.toString());
+    }, 30000);
+    
+    return () => clearTimeout(timer);
+  }, [showOnlyOnHomepage]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,7 +60,8 @@ export default function NewsletterPopup() {
 
   const handleClose = () => {
     setIsOpen(false);
-    sessionStorage.setItem('newsletter_dismissed', 'true');
+    // Save timestamp so popup won't show again for a week
+    localStorage.setItem('newsletter_last_shown', Date.now().toString());
   };
 
   return (
