@@ -57,9 +57,37 @@ app.get('/api/health', (req, res) => {
 
 // SMTP test endpoint
 app.get('/api/test-smtp', async (req, res) => {
-  const { testConnection } = require('./services/email');
-  const result = await testConnection();
-  res.json(result);
+  try {
+    const { testConnection } = require('./services/email');
+    
+    // Add timeout
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Timeout after 10s')), 10000)
+    );
+    
+    const result = await Promise.race([testConnection(), timeoutPromise]);
+    res.json(result);
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+});
+
+// Send test email
+app.get('/api/send-test-email/:email', async (req, res) => {
+  try {
+    const { sendEmail } = require('./services/email');
+    const email = req.params.email;
+    
+    await sendEmail({
+      to: email,
+      subject: 'Test Email from Biala Publishing',
+      html: '<h1>Test Email</h1><p>If you receive this, email is working!</p>'
+    });
+    
+    res.json({ success: true, message: 'Test email sent to ' + email });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
 });
 
 // Debug endpoint - show auth codes
