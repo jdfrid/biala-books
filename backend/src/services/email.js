@@ -5,16 +5,20 @@ let transporter = null;
 
 const initTransporter = () => {
   if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    const port = parseInt(process.env.SMTP_PORT || '465');
     transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: false,
+      port: port,
+      secure: port === 465, // true for 465, false for other ports
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
+      },
+      tls: {
+        rejectUnauthorized: false
       }
     });
-    console.log('✅ SMTP configured for:', process.env.SMTP_USER);
+    console.log('✅ SMTP configured for:', process.env.SMTP_USER, 'port:', port);
   } else {
     console.log('⚠️ SMTP not configured - emails will be logged only');
   }
