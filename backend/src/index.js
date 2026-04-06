@@ -15,6 +15,7 @@ const contactRoutes = require('./routes/contact');
 const donationsRoutes = require('./routes/donations');
 const ordersRoutes = require('./routes/orders');
 const adminRoutes = require('./routes/admin');
+const kvitelRoutes = require('./routes/kvitel');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -40,6 +41,7 @@ app.use('/api/waitlist', waitlistRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/donations', donationsRoutes);
 app.use('/api/orders', ordersRoutes);
+app.use('/api/kvitel', kvitelRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Health check

@@ -300,4 +300,27 @@ router.delete('/users/:id', requireAdmin, async (req, res) => {
   }
 });
 
+// Kvitel (Prayer Requests)
+router.get('/kvitel', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM kvitel ORDER BY created_at DESC');
+    const kvitelList = result.rows.map(k => ({
+      ...k,
+      additional_names: JSON.parse(k.additional_names || '[]')
+    }));
+    res.json({ kvitel: kvitelList });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch kvitel' });
+  }
+});
+
+router.delete('/kvitel/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM kvitel WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Kvitel deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete kvitel' });
+  }
+});
+
 module.exports = router;

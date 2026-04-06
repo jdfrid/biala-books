@@ -172,6 +172,21 @@ async function initDatabase() {
         value TEXT,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      -- Kvitel (Prayer Requests)
+      CREATE TABLE IF NOT EXISTS kvitel (
+        id SERIAL PRIMARY KEY,
+        first_name TEXT NOT NULL,
+        ben TEXT,
+        family_name TEXT,
+        email TEXT,
+        phone TEXT,
+        address TEXT,
+        blessing_for TEXT,
+        additional_names TEXT,
+        language TEXT DEFAULT 'he',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `);
 
     // Create default admin if not exists

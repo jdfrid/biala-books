@@ -13,7 +13,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  ScrollText
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -26,6 +27,7 @@ const navItems = [
   { path: '/admin/waitlist', icon: Bell, label: 'Waitlist' },
   { path: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
   { path: '/admin/donations', icon: Heart, label: 'Donations' },
+  { path: '/admin/kvitel', icon: ScrollText, label: 'Prayer Requests' },
   { path: '/admin/users', icon: Users, label: 'Admin Users', roles: ['admin'] },
   { path: '/admin/social', icon: Share2, label: 'Social Distribution' },
   { path: '/admin/settings', icon: Settings, label: 'Settings', roles: ['admin'] },

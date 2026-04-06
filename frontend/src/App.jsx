@@ -13,6 +13,7 @@ import MediaPage from './pages/MediaPage';
 import PublicationsPage from './pages/PublicationsPage';
 import DonatePage from './pages/DonatePage';
 import ContactPage from './pages/ContactPage';
+import KvitelPage from './pages/KvitelPage';
 
 // Admin pages
 import AdminLayout from './pages/admin/AdminLayout';
@@ -28,6 +29,7 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminDonations from './pages/admin/AdminDonations';
 import AdminSocial from './pages/admin/AdminSocial';
 import AdminSettings from './pages/admin/AdminSettings';
+import AdminKvitel from './pages/admin/AdminKvitel';
 
 function App() {
   return (
@@ -46,6 +48,7 @@ function App() {
             <Route path="publications" element={<PublicationsPage />} />
             <Route path="donate" element={<DonatePage />} />
             <Route path="contact" element={<ContactPage />} />
+            <Route path="kvitel" element={<KvitelPage />} />
           </Route>
 
           {/* Admin routes */}
@@ -62,6 +65,7 @@ function App() {
             <Route path="users" element={<AdminUsers />} />
             <Route path="social" element={<AdminSocial />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="kvitel" element={<AdminKvitel />} />
           </Route>
         </Routes>
       </Router>
