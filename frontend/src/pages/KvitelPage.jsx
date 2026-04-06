@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Plus, Trash2, Send, Globe, Check } from 'lucide-react';
+import { Plus, Trash2, Send, Globe, Check } from 'lucide-react';
 import api from '../services/api';
 
 const translations = {
@@ -48,11 +48,86 @@ const translations = {
   }
 };
 
+const DonationInfo = () => (
+  <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-6 mt-8 text-sm">
+    <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">Methods of Donation</h3>
+    <p className="text-gray-600 mb-4 text-center">
+      Below are the options how to donate to American Friends of Biala, a 501(c)3 organization with Tax ID 11-2966678:
+    </p>
+    
+    <div className="space-y-4">
+      <div className="bg-white rounded-xl p-4">
+        <strong className="text-amber-700">A - Via Check</strong>
+        <p className="text-gray-600 mt-1">
+          Please make it payable to American Friends of Biala and send it to:<br/>
+          American Friends of Biala<br/>
+          311 Boulevard of the Americas, Suite 101<br/>
+          Lakewood, NJ 08701
+        </p>
+      </div>
+
+      <div className="bg-white rounded-xl p-4">
+        <strong className="text-amber-700">B - Via Credit Card (PayPal)</strong>
+        <p className="text-gray-600 mt-1">
+          <a href="https://www.paypal.com/donate/?hosted_button_id=JTGNJ3JB9DQHN" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:text-amber-700 underline break-all">
+            https://www.paypal.com/donate/?hosted_button_id=JTGNJ3JB9DQHN
+          </a>
+        </p>
+      </div>
+
+      <div className="bg-white rounded-xl p-4">
+        <strong className="text-amber-700">C - Bank Wire</strong>
+        <p className="text-gray-600 mt-1">
+          Bank: JP Morgan Chase<br/>
+          Routing: 021000021<br/>
+          Account: American Friends of Biala Yeshiva Inc.<br/>
+          Account#: 298035996
+        </p>
+      </div>
+
+      <div className="bg-white rounded-xl p-4">
+        <strong className="text-amber-700">D - Secure Donation Webpage</strong>
+        <p className="text-gray-600 mt-1">
+          <a href="https://secure.ojccardpaymentsite.org/NAAAADAAAAAxAAAANQAAAA==" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:text-amber-700 underline break-all">
+            https://secure.ojccardpaymentsite.org/NAAAADAAAAAxAAAANQAAAA==
+          </a>
+        </p>
+      </div>
+
+      <div className="bg-white rounded-xl p-4">
+        <strong className="text-amber-700">E - Direct Recommendation Path</strong>
+        <p className="text-gray-600 mt-1">
+          <a href="https://ojcfund.org/v2/account/recommend?recurring=false&orgid=NAAAADAAAAAxAAAANQAAAA==" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:text-amber-700 underline break-all">
+            https://ojcfund.org/v2/account/recommend?recurring=false&orgid=NAAAADAAAAAxAAAANQAAAA==
+          </a>
+        </p>
+      </div>
+
+      <div className="bg-white rounded-xl p-4">
+        <strong className="text-amber-700">F - Donor Fund</strong>
+        <p className="text-gray-600 mt-1">
+          <a href="https://www.thedonorsfund.org/donate/american-friends-of-biala-yeshiva-inc/112966678" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:text-amber-700 underline break-all">
+            https://www.thedonorsfund.org/donate/american-friends-of-biala-yeshiva-inc/112966678
+          </a>
+        </p>
+      </div>
+    </div>
+
+    <div className="mt-6 pt-4 border-t border-amber-200 text-center text-gray-600">
+      <strong>Mailing Address:</strong><br/>
+      American Friends of Biala<br/>
+      311 Boulevard of the Americas, Suite 101<br/>
+      Lakewood, NJ 08701<br/><br/>
+      <strong>Phones:</strong> +972 58-733-5528 / +972 52-500-2100<br/>
+      <strong>Email:</strong> <a href="mailto:613bml@gmail.com" className="text-amber-600 hover:text-amber-700">613bml@gmail.com</a>
+    </div>
+  </div>
+);
+
 export default function KvitelPage() {
-  // Check URL params for embed mode and language
   const urlParams = new URLSearchParams(window.location.search);
   const embedMode = urlParams.get('embed') === 'true';
-  const initialLang = urlParams.get('lang') || 'en'; // Default to English
+  const initialLang = urlParams.get('lang') || 'en';
   
   const [lang, setLang] = useState(initialLang);
   const [loading, setLoading] = useState(false);
@@ -135,21 +210,25 @@ export default function KvitelPage() {
 
   if (success) {
     return (
-      <div className={`min-h-screen bg-gradient-to-b from-cream-50 to-white ${embedMode ? 'py-8' : 'py-20'}`}>
+      <div className={`min-h-screen bg-gradient-to-b from-cream-50 to-white ${embedMode ? 'py-8' : 'py-12'}`}>
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="max-w-lg mx-auto bg-white rounded-2xl shadow-xl p-8 text-center"
+            className="max-w-2xl mx-auto"
           >
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
-              <Check size={40} className="text-green-600" />
+            <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
+                <Check size={40} className="text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Request Submitted Successfully!</h2>
+              <p className="text-gray-600 mb-6">The names will be mentioned at the Rebbe's Tziun. Thank you for your request.</p>
+              <button onClick={resetForm} className="btn-gold px-8 py-3">
+                Send Another Request
+              </button>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Request Submitted Successfully!</h2>
-            <p className="text-gray-600 mb-8">The names will be mentioned at the Rebbe's Tziun. Thank you for your request.</p>
-            <button onClick={resetForm} className="btn-gold px-8 py-3">
-              {t.sendAnother}
-            </button>
+            
+            <DonationInfo />
           </motion.div>
         </div>
       </div>
@@ -172,17 +251,22 @@ export default function KvitelPage() {
           </div>
         )}
 
-        {/* Header */}
+        {/* Header with Logo */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="text-center mb-8"
         >
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
-            <Heart size={32} className="text-amber-600" />
-          </div>
+          <img 
+            src="/biala-logo.png" 
+            alt="Biala" 
+            className="w-32 h-32 mx-auto mb-4 object-contain"
+          />
           <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title}</h1>
-          <p className="text-xl text-gray-600">{t.subtitle}</p>
+          <p className="text-xl text-gray-600 mb-4">{t.subtitle}</p>
+          <p className="text-gray-500 max-w-xl mx-auto">
+            Our institutions will print the kvitel with the names you fill in and place it on the special box with the Rebbe's signature. All prayers will be accepted.
+          </p>
         </motion.div>
 
         {/* Form */}
@@ -347,6 +431,9 @@ export default function KvitelPage() {
               )}
             </button>
           </form>
+
+          {/* Donation Information */}
+          <DonationInfo />
         </motion.div>
       </div>
     </div>
