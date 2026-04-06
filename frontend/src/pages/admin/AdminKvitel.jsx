@@ -75,6 +75,30 @@ export default function AdminKvitel() {
         </button>
       </div>
 
+      {/* Embed Options */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+        <h3 className="font-semibold text-blue-900 mb-2">Embed Options</h3>
+        <p className="text-sm text-blue-700 mb-3">Use these URLs to embed the form on external sites:</p>
+        <div className="space-y-2 text-sm">
+          <div className="bg-white rounded-lg p-2 font-mono text-xs break-all">
+            <strong>Full page (no header/footer):</strong><br/>
+            {window.location.origin}/kvitel-embed
+          </div>
+          <div className="bg-white rounded-lg p-2 font-mono text-xs break-all">
+            <strong>Embed mode:</strong><br/>
+            {window.location.origin}/kvitel?embed=true
+          </div>
+          <div className="bg-white rounded-lg p-2 font-mono text-xs break-all">
+            <strong>Hebrew version:</strong><br/>
+            {window.location.origin}/kvitel?embed=true&lang=he
+          </div>
+          <div className="bg-white rounded-lg p-2 font-mono text-xs break-all">
+            <strong>iFrame code:</strong><br/>
+            {'<iframe src="' + window.location.origin + '/kvitel-embed" width="100%" height="800" frameborder="0"></iframe>'}
+          </div>
+        </div>
+      </div>
+
       {/* Search */}
       <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
         <div className="relative">

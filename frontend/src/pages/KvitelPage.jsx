@@ -49,7 +49,12 @@ const translations = {
 };
 
 export default function KvitelPage() {
-  const [lang, setLang] = useState('he');
+  // Check URL params for embed mode and language
+  const urlParams = new URLSearchParams(window.location.search);
+  const embedMode = urlParams.get('embed') === 'true';
+  const initialLang = urlParams.get('lang') || 'en'; // Default to English
+  
+  const [lang, setLang] = useState(initialLang);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -130,7 +135,7 @@ export default function KvitelPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream-50 to-white py-20">
+      <div className={`min-h-screen bg-gradient-to-b from-cream-50 to-white ${embedMode ? 'py-8' : 'py-20'}`}>
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -140,8 +145,8 @@ export default function KvitelPage() {
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
               <Check size={40} className="text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t.successTitle}</h2>
-            <p className="text-gray-600 mb-8">{t.successMessage}</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Request Submitted Successfully!</h2>
+            <p className="text-gray-600 mb-8">The names will be mentioned at the Rebbe's Tziun. Thank you for your request.</p>
             <button onClick={resetForm} className="btn-gold px-8 py-3">
               {t.sendAnother}
             </button>
@@ -152,18 +157,20 @@ export default function KvitelPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-cream-50 to-white py-12 ${isRtl ? 'rtl' : 'ltr'}`} dir={isRtl ? 'rtl' : 'ltr'}>
+    <div className={`min-h-screen bg-gradient-to-b from-cream-50 to-white ${embedMode ? 'py-4' : 'py-12'} ${isRtl ? 'rtl' : 'ltr'}`} dir={isRtl ? 'rtl' : 'ltr'}>
       <div className="container mx-auto px-4">
         {/* Language Toggle */}
-        <div className="flex justify-center mb-8">
-          <button
-            onClick={() => setLang(lang === 'he' ? 'en' : 'he')}
-            className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-md hover:shadow-lg transition-all"
-          >
-            <Globe size={20} className="text-amber-600" />
-            <span className="font-medium">{lang === 'he' ? 'English' : 'עברית'}</span>
-          </button>
-        </div>
+        {!embedMode && (
+          <div className="flex justify-center mb-8">
+            <button
+              onClick={() => setLang(lang === 'he' ? 'en' : 'he')}
+              className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-md hover:shadow-lg transition-all"
+            >
+              <Globe size={20} className="text-amber-600" />
+              <span className="font-medium">{lang === 'he' ? 'English' : 'עברית'}</span>
+            </button>
+          </div>
+        )}
 
         {/* Header */}
         <motion.div

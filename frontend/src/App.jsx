@@ -51,6 +51,9 @@ function App() {
             <Route path="kvitel" element={<KvitelPage />} />
           </Route>
 
+          {/* Standalone Kvitel page (no layout/header/footer) */}
+          <Route path="/kvitel-embed" element={<KvitelPage />} />
+
           {/* Admin routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminLayout />}>
