@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { AdminLangProvider } from './context/AdminLangContext';
 
 // Public pages
 import Layout from './components/Layout';
@@ -54,9 +55,9 @@ function App() {
           {/* Standalone Kvitel page (no layout/header/footer) */}
           <Route path="/kvitel-embed" element={<KvitelPage />} />
 
-          {/* Admin routes */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminLayout />}>
+          {/* Admin routes - wrapped with AdminLangProvider */}
+          <Route path="/admin/login" element={<AdminLangProvider><AdminLogin /></AdminLangProvider>} />
+          <Route path="/admin" element={<AdminLangProvider><AdminLayout /></AdminLangProvider>}>
             <Route index element={<AdminDashboard />} />
             <Route path="books" element={<AdminBooks />} />
             <Route path="news" element={<AdminNews />} />

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, MessageCircle, Facebook, Twitter, Check, AlertCircle } from 'lucide-react';
+import { Send, MessageCircle, Facebook, Check, AlertCircle } from 'lucide-react';
+import { useAdminLang } from '../../context/AdminLangContext';
 
 export default function AdminSocial() {
+  const { t } = useAdminLang();
   const [message, setMessage] = useState('');
   const [platforms, setPlatforms] = useState({
     telegram: true,
@@ -17,7 +19,6 @@ export default function AdminSocial() {
     if (!message.trim()) return;
 
     setSending(true);
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
     setSending(false);
     setSent(true);
@@ -26,31 +27,31 @@ export default function AdminSocial() {
   };
 
   const platformConfig = [
-    { key: 'telegram', name: 'Telegram', icon: MessageCircle, color: 'bg-blue-500' },
-    { key: 'whatsapp', name: 'WhatsApp', icon: MessageCircle, color: 'bg-green-500' },
-    { key: 'facebook', name: 'Facebook', icon: Facebook, color: 'bg-blue-600' }
+    { key: 'telegram', name: t.social.telegram, icon: MessageCircle, color: 'bg-blue-500' },
+    { key: 'whatsapp', name: t.social.whatsapp, icon: MessageCircle, color: 'bg-green-500' },
+    { key: 'facebook', name: t.social.facebook, icon: Facebook, color: 'bg-blue-600' }
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Social Distribution</h1>
-        <p className="text-gray-500">Send updates to your social channels</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t.social.title}</h1>
+        <p className="text-gray-500">{t.social.subtitle}</p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Message Form */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="font-semibold text-gray-900 mb-4">Compose Message</h2>
+            <h2 className="font-semibold text-gray-900 mb-4">{t.social.createPost}</h2>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t.social.postContent}</label>
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Write your update message here..."
+                  placeholder="..."
                   className="form-input resize-none"
                   rows={6}
                   required
@@ -59,7 +60,7 @@ export default function AdminSocial() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Send To</label>
+                <label className="block text-sm font-medium text-gray-700 mb-3">{t.social.selectPlatforms}</label>
                 <div className="flex flex-wrap gap-3">
                   {platformConfig.map((platform) => (
                     <button
@@ -89,7 +90,7 @@ export default function AdminSocial() {
                   className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-xl"
                 >
                   <Check size={20} />
-                  Message sent successfully to selected platforms!
+                  {t.social.posted}!
                 </motion.div>
               )}
 
@@ -103,7 +104,7 @@ export default function AdminSocial() {
                 ) : (
                   <>
                     <Send size={18} />
-                    Send Update
+                    {t.social.postNow}
                   </>
                 )}
               </button>
@@ -114,7 +115,7 @@ export default function AdminSocial() {
         {/* Platform Settings */}
         <div className="space-y-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="font-semibold text-gray-900 mb-4">Platform Settings</h2>
+            <h2 className="font-semibold text-gray-900 mb-4">{t.settings.title}</h2>
             <div className="space-y-4">
               {platformConfig.map((platform) => (
                 <div key={platform.key} className="flex items-center justify-between p-3 rounded-xl bg-gray-50">
@@ -124,11 +125,7 @@ export default function AdminSocial() {
                     </div>
                     <div>
                       <div className="font-medium text-gray-900">{platform.name}</div>
-                      <div className="text-xs text-gray-500">
-                        {platform.key === 'telegram' && 'Bot connected'}
-                        {platform.key === 'whatsapp' && 'Group linked'}
-                        {platform.key === 'facebook' && 'Page connected'}
-                      </div>
+                      <div className="text-xs text-gray-500">Connected</div>
                     </div>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${platforms[platform.key] ? 'bg-green-500' : 'bg-gray-300'}`}></div>
@@ -141,9 +138,9 @@ export default function AdminSocial() {
             <div className="flex items-start gap-3">
               <AlertCircle className="text-amber-600 shrink-0 mt-0.5" size={20} />
               <div>
-                <h3 className="font-medium text-amber-800 mb-1">Configuration Required</h3>
+                <h3 className="font-medium text-amber-800 mb-1">Configuration</h3>
                 <p className="text-sm text-amber-700">
-                  To enable social distribution, configure API keys and tokens in the Settings page.
+                  Configure API keys in {t.settings.title}
                 </p>
               </div>
             </div>
@@ -153,7 +150,7 @@ export default function AdminSocial() {
 
       {/* Recent Posts */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Recent Posts</h2>
+        <h2 className="font-semibold text-gray-900 mb-4">{t.social.recentPosts}</h2>
         <div className="space-y-4">
           {[
             { message: 'New book release announcement!', platforms: ['telegram', 'whatsapp'], date: '2026-01-18 14:30' },

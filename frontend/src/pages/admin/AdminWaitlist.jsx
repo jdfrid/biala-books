@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Search, Download, Mail, Trash2, BookOpen, Bell } from 'lucide-react';
+import { Search, Mail, Trash2, BookOpen, Bell } from 'lucide-react';
 import api from '../../services/api';
+import { useAdminLang } from '../../context/AdminLangContext';
 
 export default function AdminWaitlist() {
+  const { t } = useAdminLang();
   const [waitlist, setWaitlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,7 +29,7 @@ export default function AdminWaitlist() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Remove from waitlist?')) return;
+    if (!confirm(t.waitlist.confirmDelete)) return;
     try {
       await api.delete(`/waitlist/${id}`);
       fetchWaitlist();
@@ -51,7 +53,6 @@ export default function AdminWaitlist() {
     w.bookTitle.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Group by book
   const groupedByBook = filteredWaitlist.reduce((acc, item) => {
     if (!acc[item.bookTitle]) acc[item.bookTitle] = [];
     acc[item.bookTitle].push(item);
@@ -62,20 +63,20 @@ export default function AdminWaitlist() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Book Waitlist</h1>
-          <p className="text-gray-500">{waitlist.length} people waiting for books</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t.waitlist.title}</h1>
+          <p className="text-gray-500">{waitlist.length} {t.waitlist.subtitle}</p>
         </div>
       </div>
 
       <div className="relative max-w-md">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-        <input type="text" placeholder="Search by email or book..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-input pl-12" />
+        <input type="text" placeholder={t.waitlist.searchWaitlist} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-input pl-12" />
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Loading...</div>
+        <div className="text-center py-12 text-gray-400">{t.common.loading}</div>
       ) : Object.keys(groupedByBook).length === 0 ? (
-        <div className="text-center py-12 text-gray-400">No waitlist entries found</div>
+        <div className="text-center py-12 text-gray-400">{t.waitlist.noWaitlist}</div>
       ) : (
         <div className="space-y-6">
           {Object.entries(groupedByBook).map(([bookTitle, entries]) => (
@@ -87,7 +88,7 @@ export default function AdminWaitlist() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">{bookTitle}</h3>
-                    <p className="text-sm text-gray-500">{entries.length} people waiting</p>
+                    <p className="text-sm text-gray-500">{entries.length} {t.waitlist.subtitle}</p>
                   </div>
                 </div>
                 <button onClick={() => handleNotifyAll(bookTitle)} className="btn-secondary text-sm py-2">

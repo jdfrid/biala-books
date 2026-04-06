@@ -12,8 +12,10 @@ import {
   Calendar
 } from 'lucide-react';
 import api from '../../services/api';
+import { useAdminLang } from '../../context/AdminLangContext';
 
 export default function AdminDashboard() {
+  const { t, isRtl } = useAdminLang();
   const [stats, setStats] = useState({
     totalBooks: 0,
     totalOrders: 0,
@@ -35,28 +37,28 @@ export default function AdminDashboard() {
 
   const statCards = [
     { 
-      label: 'Total Books', 
+      label: t.dashboard.totalBooks, 
       value: stats.totalBooks || 25, 
       icon: BookOpen, 
       color: 'bg-blue-500',
       link: '/admin/books'
     },
     { 
-      label: 'Total Orders', 
+      label: t.dashboard.totalOrders, 
       value: stats.totalOrders || 156, 
       icon: ShoppingCart, 
       color: 'bg-green-500',
       link: '/admin/orders'
     },
     { 
-      label: 'Donations', 
+      label: t.dashboard.donations, 
       value: `$${stats.totalDonations || '12,450'}`, 
       icon: Heart, 
       color: 'bg-pink-500',
       link: '/admin/donations'
     },
     { 
-      label: 'Subscribers', 
+      label: t.dashboard.subscribers, 
       value: stats.totalSubscribers || 892, 
       icon: Users, 
       color: 'bg-purple-500',
@@ -72,18 +74,22 @@ export default function AdminDashboard() {
   ];
 
   const quickActions = [
-    { label: 'Add New Book', icon: BookOpen, link: '/admin/books?action=new' },
-    { label: 'View Waitlist', icon: Bell, link: '/admin/waitlist' },
-    { label: 'Manage Orders', icon: ShoppingCart, link: '/admin/orders' },
-    { label: 'Post Update', icon: Calendar, link: '/admin/news?action=new' },
+    { label: t.dashboard.addNewBook, icon: BookOpen, link: '/admin/books?action=new' },
+    { label: t.dashboard.viewWaitlist, icon: Bell, link: '/admin/waitlist' },
+    { label: t.dashboard.manageOrders, icon: ShoppingCart, link: '/admin/orders' },
+    { label: t.dashboard.postUpdate, icon: Calendar, link: '/admin/news?action=new' },
   ];
+
+  const getStatusLabel = (status) => {
+    return t.dashboard[status] || status;
+  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500">Welcome back! Here's what's happening.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t.dashboard.title}</h1>
+        <p className="text-gray-500">{t.dashboard.welcome}</p>
       </div>
 
       {/* Stats Grid */}
@@ -117,9 +123,9 @@ export default function AdminDashboard() {
         <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100">
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-900">Recent Orders</h2>
+              <h2 className="font-semibold text-gray-900">{t.dashboard.recentOrders}</h2>
               <Link to="/admin/orders" className="text-sm text-amber-600 hover:text-amber-700">
-                View All →
+                {t.dashboard.viewAll}
               </Link>
             </div>
           </div>
@@ -130,14 +136,14 @@ export default function AdminDashboard() {
                   <div className="font-medium text-gray-900">{order.customer}</div>
                   <div className="text-sm text-gray-500">{order.date}</div>
                 </div>
-                <div className="text-right">
+                <div className={`text-${isRtl ? 'left' : 'right'}`}>
                   <div className="font-semibold text-gray-900">${order.total}</div>
                   <span className={`text-xs px-2 py-1 rounded-full ${
                     order.status === 'completed' ? 'bg-green-100 text-green-700' :
                     order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
                     'bg-blue-100 text-blue-700'
                   }`}>
-                    {order.status}
+                    {getStatusLabel(order.status)}
                   </span>
                 </div>
               </div>
@@ -147,7 +153,7 @@ export default function AdminDashboard() {
 
         {/* Quick Actions */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <h2 className="font-semibold text-gray-900 mb-4">{t.dashboard.quickActions}</h2>
           <div className="space-y-3">
             {quickActions.map((action) => (
               <Link
@@ -168,17 +174,17 @@ export default function AdminDashboard() {
       {/* Activity Chart Placeholder */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="font-semibold text-gray-900">Activity Overview</h2>
+          <h2 className="font-semibold text-gray-900">{t.dashboard.activityOverview}</h2>
           <select className="form-input py-2 px-3 text-sm w-auto">
-            <option>Last 7 days</option>
-            <option>Last 30 days</option>
-            <option>Last 90 days</option>
+            <option>{t.dashboard.last7days}</option>
+            <option>{t.dashboard.last30days}</option>
+            <option>{t.dashboard.last90days}</option>
           </select>
         </div>
         <div className="h-64 flex items-center justify-center bg-gray-50 rounded-xl">
           <div className="text-center text-gray-400">
             <TrendingUp size={48} className="mx-auto mb-2 opacity-50" />
-            <p>Analytics chart will appear here</p>
+            <p>{t.dashboard.chartPlaceholder}</p>
           </div>
         </div>
       </div>

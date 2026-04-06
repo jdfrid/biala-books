@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Search, Download, Mail, Trash2, Calendar } from 'lucide-react';
 import api from '../../services/api';
+import { useAdminLang } from '../../context/AdminLangContext';
 
 export default function AdminSubscribers() {
+  const { t } = useAdminLang();
   const [subscribers, setSubscribers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,7 +30,7 @@ export default function AdminSubscribers() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Remove this subscriber?')) return;
+    if (!confirm(t.subscribers.confirmDelete)) return;
     try {
       await api.delete(`/newsletter/subscribers/${id}`);
       fetchSubscribers();
@@ -53,18 +55,18 @@ export default function AdminSubscribers() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Newsletter Subscribers</h1>
-          <p className="text-gray-500">{subscribers.length} total subscribers</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t.subscribers.title}</h1>
+          <p className="text-gray-500">{subscribers.length} {t.subscribers.title.toLowerCase()}</p>
         </div>
         <button onClick={handleExport} className="btn-secondary">
           <Download size={20} />
-          Export CSV
+          {t.subscribers.exportCsv}
         </button>
       </div>
 
       <div className="relative max-w-md">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-        <input type="text" placeholder="Search by email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-input pl-12" />
+        <input type="text" placeholder={t.subscribers.searchSubscribers} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-input pl-12" />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -72,17 +74,17 @@ export default function AdminSubscribers() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50">
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Email</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Date Subscribed</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Source</th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.subscribers.email}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.subscribers.subscribedOn}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.subscribers.status}</th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">{t.subscribers.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">{t.common.loading}</td></tr>
               ) : filteredSubscribers.length === 0 ? (
-                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">No subscribers found</td></tr>
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">{t.subscribers.noSubscribers}</td></tr>
               ) : (
                 filteredSubscribers.map((subscriber) => (
                   <tr key={subscriber.id} className="hover:bg-gray-50">
@@ -99,7 +101,7 @@ export default function AdminSubscribers() {
                       {subscriber.subscribedAt}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">{subscriber.source}</span>
+                      <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-600">{t.subscribers.active}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button onClick={() => handleDelete(subscriber.id)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-red-600">

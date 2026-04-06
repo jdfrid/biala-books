@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit, Trash2, X, Save, Video, Headphones, Play } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, X, Save, Video, Headphones } from 'lucide-react';
 import api from '../../services/api';
+import { useAdminLang } from '../../context/AdminLangContext';
 
 export default function AdminMedia() {
+  const { t } = useAdminLang();
   const [media, setMedia] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,7 +54,7 @@ export default function AdminMedia() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this media item?')) return;
+    if (!confirm(t.media.confirmDelete)) return;
     try {
       await api.delete(`/media/${id}`);
       fetchMedia();
@@ -83,22 +85,22 @@ export default function AdminMedia() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Media</h1>
-          <p className="text-gray-500">Manage videos and audio recordings</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t.media.title}</h1>
+          <p className="text-gray-500">{t.media.subtitle}</p>
         </div>
-        <button onClick={() => openModal()} className="btn-gold"><Plus size={20} />Add Media</button>
+        <button onClick={() => openModal()} className="btn-gold"><Plus size={20} />{t.media.addMedia}</button>
       </div>
 
       <div className="relative max-w-md">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-        <input type="text" placeholder="Search media..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-input pl-12" />
+        <input type="text" placeholder={t.media.searchMedia} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-input pl-12" />
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          <div className="col-span-full text-center py-12 text-gray-400">Loading...</div>
+          <div className="col-span-full text-center py-12 text-gray-400">{t.common.loading}</div>
         ) : filteredMedia.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-gray-400">No media found</div>
+          <div className="col-span-full text-center py-12 text-gray-400">{t.media.noMedia}</div>
         ) : (
           filteredMedia.map((item) => (
             <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -111,7 +113,7 @@ export default function AdminMedia() {
                 <h3 className="font-semibold text-gray-900 mt-1">{item.title}</h3>
                 <div className="flex items-center justify-between mt-3">
                   <span className={`px-2 py-1 rounded-full text-xs ${item.type === 'video' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-                    {item.type}
+                    {item.type === 'video' ? t.media.video : t.media.audio}
                   </span>
                   <div className="flex gap-1">
                     <button onClick={() => openModal(item)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-amber-600"><Edit size={16} /></button>
@@ -128,43 +130,34 @@ export default function AdminMedia() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-2xl shadow-xl max-w-lg w-full">
             <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">{editingItem ? 'Edit Media' : 'Add Media'}</h2>
+              <h2 className="text-xl font-bold text-gray-900">{editingItem ? t.media.editMedia : t.media.addNewMedia}</h2>
               <button onClick={closeModal} className="p-2 rounded-lg hover:bg-gray-100"><X size={20} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.media.mediaTitle}</label>
                 <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="form-input" required />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.media.type}</label>
                   <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="form-input">
-                    <option value="video">Video</option>
-                    <option value="audio">Audio</option>
+                    <option value="video">{t.media.video}</option>
+                    <option value="audio">{t.media.audio}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className="form-input">
-                    <option value="Shiur">Shiur</option>
-                    <option value="Tish">Tish</option>
-                    <option value="Niggunim">Niggunim</option>
-                    <option value="Events">Events</option>
-                  </select>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.media.duration}</label>
+                  <input type="text" placeholder="e.g. 45:30" value={formData.duration} onChange={(e) => setFormData({ ...formData, duration: e.target.value })} className="form-input" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.media.url}</label>
                 <input type="url" value={formData.url} onChange={(e) => setFormData({ ...formData, url: e.target.value })} className="form-input" />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
-                <input type="text" placeholder="e.g. 45:30" value={formData.duration} onChange={(e) => setFormData({ ...formData, duration: e.target.value })} className="form-input" />
-              </div>
               <div className="flex gap-3 pt-4">
-                <button type="button" onClick={closeModal} className="btn-secondary flex-1">Cancel</button>
-                <button type="submit" className="btn-gold flex-1"><Save size={18} />Save</button>
+                <button type="button" onClick={closeModal} className="btn-secondary flex-1">{t.common.cancel}</button>
+                <button type="submit" className="btn-gold flex-1"><Save size={18} />{t.common.save}</button>
               </div>
             </form>
           </motion.div>

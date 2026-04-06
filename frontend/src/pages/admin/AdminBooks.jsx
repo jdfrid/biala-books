@@ -5,14 +5,14 @@ import {
   Search, 
   Edit, 
   Trash2, 
-  Eye,
   X,
-  Save,
-  Upload
+  Save
 } from 'lucide-react';
 import api from '../../services/api';
+import { useAdminLang } from '../../context/AdminLangContext';
 
 export default function AdminBooks() {
+  const { t } = useAdminLang();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,7 +38,6 @@ export default function AdminBooks() {
       const res = await api.get('/books');
       setBooks(res.data.books || []);
     } catch (err) {
-      // Use sample data if API fails
       setBooks([
         { id: 1, title: 'Mevaser Tov - Bereishis', hebrewTitle: 'מבשר טוב - בראשית', price: 35, stock: 15, category: 'Torah', available: true },
         { id: 2, title: 'Mevaser Tov - Shemos', hebrewTitle: 'מבשר טוב - שמות', price: 35, stock: 20, category: 'Torah', available: true },
@@ -65,7 +64,7 @@ export default function AdminBooks() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this book?')) return;
+    if (!confirm(t.books.confirmDelete)) return;
     try {
       await api.delete(`/books/${id}`);
       fetchBooks();
@@ -113,17 +112,22 @@ export default function AdminBooks() {
     book.hebrewTitle?.includes(searchTerm)
   );
 
+  const getCategoryLabel = (category) => {
+    const key = category.toLowerCase();
+    return t.books.categories[key] || category;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Books</h1>
-          <p className="text-gray-500">Manage your book catalog</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t.books.title}</h1>
+          <p className="text-gray-500">{t.books.subtitle}</p>
         </div>
         <button onClick={() => openModal()} className="btn-gold">
           <Plus size={20} />
-          Add Book
+          {t.books.addBook}
         </button>
       </div>
 
@@ -132,7 +136,7 @@ export default function AdminBooks() {
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
         <input
           type="text"
-          placeholder="Search books..."
+          placeholder={t.books.searchBooks}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="form-input pl-12"
@@ -145,22 +149,22 @@ export default function AdminBooks() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50">
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Book</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Stock</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t.books.book}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t.books.category}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t.books.price}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t.books.stock}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t.books.status}</th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">{t.books.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400">Loading...</td>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400">{t.books.loading}</td>
                 </tr>
               ) : filteredBooks.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400">No books found</td>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400">{t.books.noBooks}</td>
                 </tr>
               ) : (
                 filteredBooks.map((book) => (
@@ -171,7 +175,7 @@ export default function AdminBooks() {
                         <div className="text-sm text-amber-600 font-hebrew">{book.hebrewTitle}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{book.category}</td>
+                    <td className="px-6 py-4 text-gray-600">{getCategoryLabel(book.category)}</td>
                     <td className="px-6 py-4 font-semibold text-gray-900">${book.price}</td>
                     <td className="px-6 py-4 text-gray-600">{book.stock}</td>
                     <td className="px-6 py-4">
@@ -180,7 +184,7 @@ export default function AdminBooks() {
                           ? 'bg-green-100 text-green-700'
                           : 'bg-red-100 text-red-700'
                       }`}>
-                        {book.available && book.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                        {book.available && book.stock > 0 ? t.books.inStock : t.books.outOfStock}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -217,7 +221,7 @@ export default function AdminBooks() {
           >
             <div className="p-6 border-b border-gray-100 flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">
-                {editingBook ? 'Edit Book' : 'Add New Book'}
+                {editingBook ? t.books.editBook : t.books.addNewBook}
               </h2>
               <button onClick={closeModal} className="p-2 rounded-lg hover:bg-gray-100">
                 <X size={20} />
@@ -226,7 +230,7 @@ export default function AdminBooks() {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title (English)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.books.titleEnglish}</label>
                 <input
                   type="text"
                   value={formData.title}
@@ -237,7 +241,7 @@ export default function AdminBooks() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title (Hebrew)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.books.titleHebrew}</label>
                 <input
                   type="text"
                   value={formData.hebrewTitle}
@@ -248,7 +252,7 @@ export default function AdminBooks() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Author</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.books.author}</label>
                 <input
                   type="text"
                   value={formData.author}
@@ -258,7 +262,7 @@ export default function AdminBooks() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.books.description}</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -269,7 +273,7 @@ export default function AdminBooks() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.books.price} ($)</label>
                   <input
                     type="number"
                     value={formData.price}
@@ -279,7 +283,7 @@ export default function AdminBooks() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t.books.stock}</label>
                   <input
                     type="number"
                     value={formData.stock}
@@ -291,16 +295,16 @@ export default function AdminBooks() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.books.category}</label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="form-input"
                 >
-                  <option value="Torah">Torah</option>
-                  <option value="Chassidus">Chassidus</option>
-                  <option value="Prayer">Prayer</option>
-                  <option value="Holidays">Holidays</option>
+                  <option value="Torah">{t.books.categories.torah}</option>
+                  <option value="Chassidus">{t.books.categories.chassidus}</option>
+                  <option value="Prayer">{t.books.categories.prayer}</option>
+                  <option value="Holidays">{t.books.categories.holidays}</option>
                 </select>
               </div>
 
@@ -312,16 +316,16 @@ export default function AdminBooks() {
                   onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
                   className="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
                 />
-                <label htmlFor="available" className="text-sm text-gray-700">Available for sale</label>
+                <label htmlFor="available" className="text-sm text-gray-700">{t.books.availableForSale}</label>
               </div>
 
               <div className="flex gap-3 pt-4">
                 <button type="button" onClick={closeModal} className="btn-secondary flex-1">
-                  Cancel
+                  {t.books.cancel}
                 </button>
                 <button type="submit" className="btn-gold flex-1">
                   <Save size={18} />
-                  {editingBook ? 'Save Changes' : 'Add Book'}
+                  {editingBook ? t.books.saveChanges : t.books.addBook}
                 </button>
               </div>
             </form>

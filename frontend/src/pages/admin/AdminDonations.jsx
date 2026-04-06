@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Search, Download, Heart, Calendar, DollarSign } from 'lucide-react';
 import api from '../../services/api';
+import { useAdminLang } from '../../context/AdminLangContext';
 
 export default function AdminDonations() {
+  const { t } = useAdminLang();
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,12 +54,12 @@ export default function AdminDonations() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Donations</h1>
-          <p className="text-gray-500">{donations.length} total donations</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t.donations.title}</h1>
+          <p className="text-gray-500">{donations.length} {t.donations.title.toLowerCase()}</p>
         </div>
         <button onClick={handleExport} className="btn-secondary">
           <Download size={20} />
-          Export CSV
+          {t.subscribers.exportCsv}
         </button>
       </div>
 
@@ -68,7 +70,7 @@ export default function AdminDonations() {
             <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
               <DollarSign className="text-green-600" size={20} />
             </div>
-            <span className="text-gray-500 text-sm">Total Raised</span>
+            <span className="text-gray-500 text-sm">{t.donations.totalDonations}</span>
           </div>
           <div className="text-2xl font-bold text-gray-900">${totalDonations.toLocaleString()}</div>
         </div>
@@ -87,7 +89,7 @@ export default function AdminDonations() {
 
       <div className="relative max-w-md">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-        <input type="text" placeholder="Search donations..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-input pl-12" />
+        <input type="text" placeholder={t.donations.searchDonations} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-input pl-12" />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -95,17 +97,17 @@ export default function AdminDonations() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50">
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Donor</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Amount</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Cause</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.donations.donor}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.donations.amount}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.donations.purpose}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.donations.date}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">{t.common.loading}</td></tr>
               ) : filteredDonations.length === 0 ? (
-                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">No donations found</td></tr>
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">{t.donations.noDonations}</td></tr>
               ) : (
                 filteredDonations.map((donation) => (
                   <tr key={donation.id} className="hover:bg-gray-50">

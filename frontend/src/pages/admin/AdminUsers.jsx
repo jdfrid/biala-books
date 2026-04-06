@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit, Trash2, X, Save, Users, Shield, Mail } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, X, Save, Shield } from 'lucide-react';
 import api from '../../services/api';
+import { useAdminLang } from '../../context/AdminLangContext';
 
 export default function AdminUsers() {
+  const { t } = useAdminLang();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,7 +47,7 @@ export default function AdminUsers() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this admin user?')) return;
+    if (!confirm(t.users.confirmDelete)) return;
     try {
       await api.delete(`/admin/users/${id}`);
       fetchUsers();
@@ -75,22 +77,26 @@ export default function AdminUsers() {
     u.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const getRoleLabel = (role) => {
+    return t.users.roles[role] || role;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Admin Users</h1>
-          <p className="text-gray-500">Manage admin access</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t.users.title}</h1>
+          <p className="text-gray-500">{t.users.subtitle}</p>
         </div>
         <button onClick={() => openModal()} className="btn-gold">
           <Plus size={20} />
-          Add User
+          {t.users.addUser}
         </button>
       </div>
 
       <div className="relative max-w-md">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-        <input type="text" placeholder="Search users..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-input pl-12" />
+        <input type="text" placeholder={t.users.searchUsers} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-input pl-12" />
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -98,17 +104,17 @@ export default function AdminUsers() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50">
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">User</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Role</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Last Login</th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.users.name}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.users.role}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.users.lastLogin}</th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">{t.users.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">{t.common.loading}</td></tr>
               ) : filteredUsers.length === 0 ? (
-                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">No users found</td></tr>
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-gray-400">{t.users.noUsers}</td></tr>
               ) : (
                 filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50">
@@ -128,7 +134,7 @@ export default function AdminUsers() {
                         user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'
                       }`}>
                         <Shield size={12} className="inline mr-1" />
-                        {user.role}
+                        {getRoleLabel(user.role)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-600">{user.lastLogin}</td>
@@ -154,28 +160,28 @@ export default function AdminUsers() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-2xl shadow-xl max-w-md w-full">
             <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">{editingUser ? 'Edit User' : 'Add User'}</h2>
+              <h2 className="text-xl font-bold text-gray-900">{editingUser ? t.users.editUser : t.users.addNewUser}</h2>
               <button onClick={closeModal} className="p-2 rounded-lg hover:bg-gray-100"><X size={20} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.users.name}</label>
                 <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="form-input" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.users.email}</label>
                 <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="form-input" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.users.role}</label>
                 <select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} className="form-input">
-                  <option value="editor">Editor</option>
-                  <option value="admin">Admin</option>
+                  <option value="editor">{t.users.roles.editor}</option>
+                  <option value="admin">{t.users.roles.admin}</option>
                 </select>
               </div>
               <div className="flex gap-3 pt-4">
-                <button type="button" onClick={closeModal} className="btn-secondary flex-1">Cancel</button>
-                <button type="submit" className="btn-gold flex-1"><Save size={18} />Save</button>
+                <button type="button" onClick={closeModal} className="btn-secondary flex-1">{t.common.cancel}</button>
+                <button type="submit" className="btn-gold flex-1"><Save size={18} />{t.common.save}</button>
               </div>
             </form>
           </motion.div>

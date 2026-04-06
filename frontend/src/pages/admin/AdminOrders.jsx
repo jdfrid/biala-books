@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Search, Eye, Download, Package, Calendar, DollarSign } from 'lucide-react';
+import { Search, Eye, Calendar } from 'lucide-react';
 import api from '../../services/api';
+import { useAdminLang } from '../../context/AdminLangContext';
 
 export default function AdminOrders() {
+  const { t } = useAdminLang();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -58,12 +60,12 @@ export default function AdminOrders() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
-          <p className="text-gray-500">{orders.length} total orders</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t.orders.title}</h1>
+          <p className="text-gray-500">{orders.length} {t.orders.title.toLowerCase()}</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="bg-white rounded-xl px-4 py-2 border border-gray-200">
-            <span className="text-sm text-gray-500">Total Revenue</span>
+            <span className="text-sm text-gray-500">{t.donations.totalDonations}</span>
             <div className="font-bold text-green-600">${totalRevenue}</div>
           </div>
         </div>
@@ -72,15 +74,15 @@ export default function AdminOrders() {
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-          <input type="text" placeholder="Search orders..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-input pl-12" />
+          <input type="text" placeholder={t.orders.searchOrders} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="form-input pl-12" />
         </div>
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="form-input w-auto">
-          <option value="all">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="processing">Processing</option>
-          <option value="shipped">Shipped</option>
-          <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="all">{t.common.status}</option>
+          <option value="pending">{t.orders.statuses.pending}</option>
+          <option value="processing">{t.orders.statuses.processing}</option>
+          <option value="shipped">{t.orders.statuses.shipped}</option>
+          <option value="completed">{t.orders.statuses.completed}</option>
+          <option value="cancelled">{t.orders.statuses.cancelled}</option>
         </select>
       </div>
 
@@ -89,20 +91,20 @@ export default function AdminOrders() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50">
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Order</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Customer</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Items</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Total</th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.orders.orderId}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.orders.customer}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.orders.date}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.orders.items}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.orders.total}</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">{t.orders.status}</th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase">{t.orders.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-400">Loading...</td></tr>
+                <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-400">{t.common.loading}</td></tr>
               ) : filteredOrders.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-400">No orders found</td></tr>
+                <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-400">{t.orders.noOrders}</td></tr>
               ) : (
                 filteredOrders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
@@ -115,7 +117,7 @@ export default function AdminOrders() {
                       <Calendar size={14} />
                       {order.date}
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{order.items} items</td>
+                    <td className="px-6 py-4 text-gray-600">{order.items}</td>
                     <td className="px-6 py-4 font-semibold text-gray-900">${order.total}</td>
                     <td className="px-6 py-4">
                       <select 
@@ -123,11 +125,11 @@ export default function AdminOrders() {
                         onChange={(e) => updateStatus(order.id, e.target.value)}
                         className={`px-3 py-1 rounded-full text-xs font-medium border-0 ${statusColors[order.status]}`}
                       >
-                        <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
-                        <option value="shipped">Shipped</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
+                        <option value="pending">{t.orders.statuses.pending}</option>
+                        <option value="processing">{t.orders.statuses.processing}</option>
+                        <option value="shipped">{t.orders.statuses.shipped}</option>
+                        <option value="completed">{t.orders.statuses.completed}</option>
+                        <option value="cancelled">{t.orders.statuses.cancelled}</option>
                       </select>
                     </td>
                     <td className="px-6 py-4 text-right">

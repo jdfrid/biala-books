@@ -14,29 +14,32 @@ import {
   LogOut,
   Menu,
   X,
-  ScrollText
+  ScrollText,
+  Globe
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-
-const navItems = [
-  { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
-  { path: '/admin/books', icon: BookOpen, label: 'Books' },
-  { path: '/admin/news', icon: Newspaper, label: 'News & Updates' },
-  { path: '/admin/media', icon: Video, label: 'Media' },
-  { path: '/admin/subscribers', icon: Users, label: 'Subscribers' },
-  { path: '/admin/waitlist', icon: Bell, label: 'Waitlist' },
-  { path: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
-  { path: '/admin/donations', icon: Heart, label: 'Donations' },
-  { path: '/admin/kvitel', icon: ScrollText, label: 'Prayer Requests' },
-  { path: '/admin/users', icon: Users, label: 'Admin Users', roles: ['admin'] },
-  { path: '/admin/social', icon: Share2, label: 'Social Distribution' },
-  { path: '/admin/settings', icon: Settings, label: 'Settings', roles: ['admin'] },
-];
+import { useAdminLang } from '../../context/AdminLangContext';
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, loading, logout, isAuthenticated } = useAuth();
+  const { t, isRtl, toggleLang, adminLang } = useAdminLang();
   const navigate = useNavigate();
+
+  const navItems = [
+    { path: '/admin', icon: LayoutDashboard, labelKey: 'dashboard', exact: true },
+    { path: '/admin/books', icon: BookOpen, labelKey: 'books' },
+    { path: '/admin/news', icon: Newspaper, labelKey: 'newsUpdates' },
+    { path: '/admin/media', icon: Video, labelKey: 'media' },
+    { path: '/admin/subscribers', icon: Users, labelKey: 'subscribers' },
+    { path: '/admin/waitlist', icon: Bell, labelKey: 'waitlist' },
+    { path: '/admin/orders', icon: ShoppingCart, labelKey: 'orders' },
+    { path: '/admin/donations', icon: Heart, labelKey: 'donations' },
+    { path: '/admin/kvitel', icon: ScrollText, labelKey: 'prayerRequests' },
+    { path: '/admin/users', icon: Users, labelKey: 'adminUsers', roles: ['admin'] },
+    { path: '/admin/social', icon: Share2, labelKey: 'socialDistribution' },
+    { path: '/admin/settings', icon: Settings, labelKey: 'settings', roles: ['admin'] },
+  ];
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -66,7 +69,7 @@ export default function AdminLayout() {
   );
 
   return (
-    <div className="min-h-screen flex bg-gray-100">
+    <div className={`min-h-screen flex bg-gray-100 ${isRtl ? 'rtl' : 'ltr'}`} dir={isRtl ? 'rtl' : 'ltr'}>
       {/* Sidebar overlay (mobile) */}
       {sidebarOpen && (
         <div 
@@ -77,10 +80,15 @@ export default function AdminLayout() {
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50 w-64 
+        fixed lg:static inset-y-0 ${isRtl ? 'right-0' : 'left-0'} z-50 w-64 
         bg-gradient-to-b from-gray-800 via-gray-900 to-gray-800 
         transform transition-transform duration-300
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${sidebarOpen 
+          ? 'translate-x-0' 
+          : isRtl 
+            ? 'translate-x-full lg:translate-x-0' 
+            : '-translate-x-full lg:translate-x-0'
+        }
       `}>
         <div className="h-full flex flex-col p-4">
           {/* Logo */}
@@ -90,8 +98,8 @@ export default function AdminLayout() {
                 <BookOpen size={20} className="text-gray-900" />
               </div>
               <div>
-                <div className="font-display font-semibold text-amber-400">Admin Panel</div>
-                <div className="text-xs text-gray-400">Biala Publishing</div>
+                <div className="font-display font-semibold text-amber-400">{t.adminPanel}</div>
+                <div className="text-xs text-gray-400">{t.bialaPublishing}</div>
               </div>
             </div>
             <button 
@@ -119,7 +127,7 @@ export default function AdminLayout() {
                 `}
               >
                 <item.icon size={20} />
-                <span className="text-sm font-medium">{item.label}</span>
+                <span className="text-sm font-medium">{t.nav[item.labelKey]}</span>
               </NavLink>
             ))}
           </nav>
@@ -142,7 +150,7 @@ export default function AdminLayout() {
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
             >
               <LogOut size={20} />
-              <span className="text-sm font-medium">Sign Out</span>
+              <span className="text-sm font-medium">{t.signOut}</span>
             </button>
           </div>
         </div>
@@ -160,6 +168,18 @@ export default function AdminLayout() {
           </button>
           
           <div className="flex-1" />
+
+          {/* Language Toggle */}
+          <button
+            onClick={toggleLang}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors mx-4"
+            title={adminLang === 'en' ? 'עברית' : 'English'}
+          >
+            <Globe size={20} className="text-amber-600" />
+            <span className="text-sm font-medium text-gray-700">
+              {adminLang === 'en' ? 'עברית' : 'English'}
+            </span>
+          </button>
           
           <a 
             href="/" 
@@ -167,7 +187,7 @@ export default function AdminLayout() {
             rel="noopener noreferrer"
             className="text-sm text-gray-500 hover:text-amber-600 transition-colors"
           >
-            View Public Site →
+            {t.viewPublicSite}
           </a>
         </header>
 
