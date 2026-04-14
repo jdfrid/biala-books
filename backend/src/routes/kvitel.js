@@ -2,6 +2,94 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 const { sendEmail } = require('../services/email');
+const PDFDocument = require('pdfkit');
+
+// Generate PDF with names table
+const generateKvitelPDF = (firstName, ben, familyName, blessingFor, additionalNames) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ 
+        size: 'A4', 
+        margin: 50,
+        info: {
+          Title: 'Kvitel - Prayer Request',
+          Author: 'Biala Publishing'
+        }
+      });
+      
+      const chunks = [];
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      // Title
+      doc.fontSize(20).font('Helvetica-Bold')
+         .text('בקשת הזכרה על ציון הרבי זצ"ל', { align: 'center' });
+      doc.moveDown(0.5);
+      doc.fontSize(14).font('Helvetica')
+         .text('Prayer Request at the Rebbe\'s Tziun', { align: 'center' });
+      doc.moveDown(2);
+
+      // Table configuration
+      const tableTop = doc.y;
+      const colWidths = [100, 80, 100, 100, 120];
+      const headers = ['שם / Name', 'בן / Ben', 'אב/אם', 'משפחה / Family', 'ברכה ל / Blessing'];
+      const startX = 50;
+
+      // Draw header row
+      doc.font('Helvetica-Bold').fontSize(10);
+      let x = startX;
+      headers.forEach((header, i) => {
+        doc.rect(x, tableTop, colWidths[i], 25).stroke();
+        doc.text(header, x + 5, tableTop + 8, { width: colWidths[i] - 10 });
+        x += colWidths[i];
+      });
+
+      // Data rows
+      doc.font('Helvetica').fontSize(10);
+      let y = tableTop + 25;
+      
+      // Main person row
+      const allRows = [
+        { firstName, ben: ben || '', parent: ben || '', familyName: familyName || '', blessingFor: blessingFor || '' }
+      ];
+      
+      // Add additional names
+      if (additionalNames && additionalNames.length > 0) {
+        additionalNames.forEach(name => {
+          allRows.push({
+            firstName: name.firstName || '',
+            ben: name.ben || '',
+            parent: name.ben || '',
+            familyName: name.familyName || '',
+            blessingFor: name.blessingFor || ''
+          });
+        });
+      }
+
+      // Draw data rows
+      allRows.forEach(row => {
+        x = startX;
+        const rowData = [row.firstName, row.ben, row.parent, row.familyName, row.blessingFor];
+        rowData.forEach((cell, i) => {
+          doc.rect(x, y, colWidths[i], 22).stroke();
+          doc.text(cell, x + 5, y + 6, { width: colWidths[i] - 10 });
+          x += colWidths[i];
+        });
+        y += 22;
+      });
+
+      // Footer
+      doc.moveDown(3);
+      doc.fontSize(9).fillColor('#666')
+         .text(`Date: ${new Date().toLocaleDateString('en-US')}`, { align: 'center' });
+
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 
 // Submit kvitel (prayer request)
 router.post('/', async (req, res) => {
@@ -31,62 +119,38 @@ router.post('/', async (req, res) => {
     // Send emails in background (don't block response)
     setImmediate(async () => {
       try {
-        let namesHtml = '';
-        if (additionalNames && additionalNames.length > 0) {
-          namesHtml = `
-            <h3>${isHebrew ? 'שמות נוספים להזכרה:' : 'Additional Names:'}</h3>
-            <table style="border-collapse: collapse; width: 100%;">
-              <tr style="background: #f5f5f5;">
-                <th style="border: 1px solid #ddd; padding: 8px;">${isHebrew ? 'שם פרטי' : 'First Name'}</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">${isHebrew ? 'בן' : 'Ben'}</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">${isHebrew ? 'משפחה' : 'Family'}</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">${isHebrew ? 'ברכה ל...' : 'Blessing For'}</th>
-              </tr>
-              ${additionalNames.map(n => `
-                <tr>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${n.firstName || ''}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${n.ben || ''}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${n.familyName || ''}</td>
-                  <td style="border: 1px solid #ddd; padding: 8px;">${n.blessingFor || ''}</td>
-                </tr>
-              `).join('')}
-            </table>
-          `;
-        }
-
-        // Send email to admin
+        // Generate PDF with names only
+        const pdfBuffer = await generateKvitelPDF(firstName, ben, familyName, blessingFor, additionalNames);
+        
+        // Send email to admin with PDF attachment
         await sendEmail({
           to: 'jdfrid@gmail.com',
-          subject: isHebrew ? `בקשת הזכרה חדשה - ${firstName} ${familyName || ''}` : `New Prayer Request - ${firstName} ${familyName || ''}`,
+          subject: `קוויטל חדש - ${firstName} ${familyName || ''} - Kvitel #${kvitelId}`,
           html: `
-            <div style="font-family: ${isHebrew ? 'Arial, sans-serif' : 'Georgia, serif'}; max-width: 600px; margin: 0 auto; padding: 20px; direction: ${isHebrew ? 'rtl' : 'ltr'};">
-              <h1 style="color: #1A2035; border-bottom: 2px solid #D4AF37; padding-bottom: 10px;">
-                ${isHebrew ? 'בקשת הזכרה על ציון הרבי זצ"ל' : 'Prayer Request at the Rebbe\'s Tziun'}
-              </h1>
-              
-              <h2>${isHebrew ? 'פרטי השולח:' : 'Sender Details:'}</h2>
-              <table style="width: 100%; margin-bottom: 20px;">
-                <tr><td><strong>${isHebrew ? 'שם פרטי:' : 'First Name:'}</strong></td><td>${firstName}</td></tr>
-                <tr><td><strong>${isHebrew ? 'בן:' : 'Ben:'}</strong></td><td>${ben || '-'}</td></tr>
-                <tr><td><strong>${isHebrew ? 'משפחה:' : 'Family Name:'}</strong></td><td>${familyName || '-'}</td></tr>
-                <tr><td><strong>${isHebrew ? 'דוא"ל:' : 'Email:'}</strong></td><td>${email || '-'}</td></tr>
-                <tr><td><strong>${isHebrew ? 'טלפון:' : 'Phone:'}</strong></td><td>${phone || '-'}</td></tr>
-                <tr><td><strong>${isHebrew ? 'כתובת:' : 'Address:'}</strong></td><td>${address || '-'}</td></tr>
-                <tr><td><strong>${isHebrew ? 'ברכה ל...:' : 'Blessing For:'}</strong></td><td>${blessingFor || '-'}</td></tr>
-              </table>
-              
-              ${namesHtml}
-              
-              <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
-              <p style="color: #666; font-size: 12px;">
-                ${isHebrew ? 'התקבל בתאריך:' : 'Received on:'} ${new Date().toLocaleString(isHebrew ? 'he-IL' : 'en-US')}
+            <div style="font-family: Arial, sans-serif; padding: 20px; direction: rtl; text-align: right;">
+              <h2 style="color: #1A2035;">קוויטל חדש להזכרה</h2>
+              <p style="font-size: 16px; color: #333;">
+                התקבל קוויטל חדש עם <strong>${1 + (additionalNames?.length || 0)}</strong> שמות להזכרה.
+              </p>
+              <p style="font-size: 14px; color: #666;">
+                מצורף קובץ PDF עם טבלת השמות להדפסה.
+              </p>
+              <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+              <p style="font-size: 12px; color: #999;">
+                תאריך: ${new Date().toLocaleDateString('he-IL')}
               </p>
             </div>
-          `
+          `,
+          attachments: [
+            {
+              filename: `kvitel_${kvitelId}.pdf`,
+              content: pdfBuffer
+            }
+          ]
         });
-        console.log('✅ Admin email sent for kvitel #' + kvitelId);
+        console.log('✅ Admin email sent with PDF for kvitel #' + kvitelId);
 
-        // Send confirmation to sender if email provided
+        // Send confirmation to sender if email provided (no PDF for user)
         if (email) {
           await sendEmail({
             to: email,

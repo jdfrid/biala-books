@@ -11,13 +11,23 @@ const initEmailService = () => {
     
     console.log('✅ Email configured with Resend');
     
-    sendEmailFn = async ({ to, subject, html }) => {
-      const result = await resend.emails.send({
+    sendEmailFn = async ({ to, subject, html, attachments }) => {
+      const emailData = {
         from: process.env.EMAIL_FROM || 'Biala Publishing <onboarding@resend.dev>',
         to: [to],
         subject,
         html
-      });
+      };
+      
+      // Add attachments if provided
+      if (attachments && attachments.length > 0) {
+        emailData.attachments = attachments.map(att => ({
+          filename: att.filename,
+          content: att.content
+        }));
+      }
+      
+      const result = await resend.emails.send(emailData);
       
       if (result.error) {
         throw new Error(result.error.message);
@@ -47,13 +57,24 @@ const initEmailService = () => {
     
     console.log('✅ Email configured with SMTP:', process.env.SMTP_USER);
     
-    sendEmailFn = async ({ to, subject, html }) => {
-      const info = await transporter.sendMail({
+    sendEmailFn = async ({ to, subject, html, attachments }) => {
+      const mailOptions = {
         from: process.env.SMTP_FROM || `"Biala Publishing" <${process.env.SMTP_USER}>`,
         to,
         subject,
         html
-      });
+      };
+      
+      // Add attachments if provided
+      if (attachments && attachments.length > 0) {
+        mailOptions.attachments = attachments.map(att => ({
+          filename: att.filename,
+          content: att.content,
+          contentType: att.contentType || 'application/pdf'
+        }));
+      }
+      
+      const info = await transporter.sendMail(mailOptions);
       console.log('✅ Email sent via SMTP:', info.messageId);
       return info;
     };
@@ -62,10 +83,11 @@ const initEmailService = () => {
   
   // No email service configured - log only
   console.log('⚠️ No email service configured - emails will be logged only');
-  sendEmailFn = async ({ to, subject, html }) => {
+  sendEmailFn = async ({ to, subject, html, attachments }) => {
     console.log('📧 [DEV MODE] Email would be sent:');
     console.log(`   To: ${to}`);
     console.log(`   Subject: ${subject}`);
+    if (attachments) console.log(`   Attachments: ${attachments.length}`);
     return { messageId: 'dev-' + Date.now(), devMode: true };
   };
 };
@@ -73,10 +95,10 @@ const initEmailService = () => {
 // Initialize on load
 initEmailService();
 
-const sendEmail = async ({ to, subject, html }) => {
+const sendEmail = async ({ to, subject, html, attachments }) => {
   console.log(`📧 Sending email to: ${to}`);
   try {
-    return await sendEmailFn({ to, subject, html });
+    return await sendEmailFn({ to, subject, html, attachments });
   } catch (error) {
     console.error('❌ Email error:', error.message);
     throw error;
