@@ -3,11 +3,8 @@ const router = express.Router();
 const { pool } = require('../config/database');
 const { sendEmail } = require('../services/email');
 
-// Generate PDF with Hebrew support using Puppeteer
-const generateKvitelPDF = async (kvitelId, firstName, ben, familyName, blessingFor, additionalNames) => {
-  const puppeteer = require('puppeteer');
-  
-  // Build all names array
+// Generate HTML table for email (Hebrew supported)
+const generateNamesTable = (firstName, ben, familyName, blessingFor, additionalNames) => {
   const allNames = [
     { name: firstName || '', ben: ben || '', family: familyName || '', blessing: blessingFor || '' }
   ];
@@ -23,73 +20,28 @@ const generateKvitelPDF = async (kvitelId, firstName, ben, familyName, blessingF
     });
   }
 
-  // Generate HTML with Hebrew support
-  const html = `
-    <!DOCTYPE html>
-    <html dir="rtl" lang="he">
-    <head>
-      <meta charset="UTF-8">
-      <style>
-        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700&display=swap');
-        * { font-family: 'Heebo', Arial, sans-serif; }
-        body { padding: 40px; direction: rtl; }
-        h1 { text-align: center; color: #1a2035; margin-bottom: 5px; }
-        .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th { background: #f5f5f5; padding: 12px 8px; border: 1px solid #ddd; text-align: right; font-weight: 700; }
-        td { padding: 10px 8px; border: 1px solid #ddd; text-align: right; }
-        tr:nth-child(even) { background: #fafafa; }
-        .footer { color: #999; font-size: 12px; margin-top: 20px; }
-      </style>
-    </head>
-    <body>
-      <h1>קוויטל להזכרה</h1>
-      <p class="subtitle">Kvitel #${kvitelId} | ${new Date().toLocaleDateString('he-IL')}</p>
-      
-      <table>
-        <thead>
-          <tr>
-            <th>שם</th>
-            <th>בן</th>
-            <th>משפחה</th>
-            <th>ברכה ל</th>
+  return `
+    <table style="width: 100%; border-collapse: collapse; direction: rtl; text-align: right; font-family: Arial, sans-serif;">
+      <thead>
+        <tr style="background: #f5f5f5;">
+          <th style="border: 1px solid #ddd; padding: 12px 8px; font-weight: bold;">שם</th>
+          <th style="border: 1px solid #ddd; padding: 12px 8px; font-weight: bold;">בן</th>
+          <th style="border: 1px solid #ddd; padding: 12px 8px; font-weight: bold;">משפחה</th>
+          <th style="border: 1px solid #ddd; padding: 12px 8px; font-weight: bold;">ברכה ל</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${allNames.map((row, i) => `
+          <tr style="background: ${i % 2 === 0 ? '#fff' : '#fafafa'};">
+            <td style="border: 1px solid #ddd; padding: 10px 8px;">${row.name || '-'}</td>
+            <td style="border: 1px solid #ddd; padding: 10px 8px;">${row.ben || '-'}</td>
+            <td style="border: 1px solid #ddd; padding: 10px 8px;">${row.family || '-'}</td>
+            <td style="border: 1px solid #ddd; padding: 10px 8px;">${row.blessing || '-'}</td>
           </tr>
-        </thead>
-        <tbody>
-          ${allNames.map(row => `
-            <tr>
-              <td>${row.name || '-'}</td>
-              <td>${row.ben || '-'}</td>
-              <td>${row.family || '-'}</td>
-              <td>${row.blessing || '-'}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-      
-      <p class="footer">סה"כ שמות: ${allNames.length}</p>
-    </body>
-    </html>
+        `).join('')}
+      </tbody>
+    </table>
   `;
-
-  // Launch browser and generate PDF
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-  
-  const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: 'networkidle0' });
-  
-  const pdfBuffer = await page.pdf({
-    format: 'A4',
-    printBackground: true,
-    margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' }
-  });
-  
-  await browser.close();
-  
-  return pdfBuffer;
 };
 
 // Submit kvitel (prayer request)
@@ -121,27 +73,25 @@ router.post('/', async (req, res) => {
     // Send emails in background (don't block response)
     setImmediate(async () => {
       try {
-        // Generate PDF with names only
-        const pdfBuffer = await generateKvitelPDF(kvitelId, firstName, ben, familyName, blessingFor, additionalNames);
+        // Generate names table HTML
+        const namesTable = generateNamesTable(firstName, ben, familyName, blessingFor, additionalNames);
         
-        // Send email to admin with PDF attachment
+        // Send email to admin with table in body
         await sendEmail({
           to: 'jdfrid@gmail.com',
-          subject: `קוויטל #${kvitelId} - ${totalNames} שמות`,
+          subject: `קוויטל #${kvitelId} - ${totalNames} שמות להזכרה`,
           html: `
-            <div style="font-family: Arial, sans-serif; padding: 15px; direction: rtl; text-align: right;">
-              <p><strong>קוויטל #${kvitelId}</strong> - ${totalNames} שמות להזכרה</p>
-              <p style="color: #666; font-size: 13px;">מצורף PDF עם טבלת השמות להדפסה.</p>
+            <div style="font-family: Arial, sans-serif; padding: 20px; direction: rtl; text-align: right; max-width: 600px;">
+              <h2 style="color: #1a2035; margin-bottom: 5px;">קוויטל להזכרה</h2>
+              <p style="color: #666; margin-bottom: 20px;">מספר: ${kvitelId} | תאריך: ${new Date().toLocaleDateString('he-IL')}</p>
+              
+              ${namesTable}
+              
+              <p style="color: #666; font-size: 13px; margin-top: 15px;">סה"כ שמות: ${totalNames}</p>
             </div>
-          `,
-          attachments: [
-            {
-              filename: `kvitel_${kvitelId}.pdf`,
-              content: pdfBuffer
-            }
-          ]
+          `
         });
-        console.log('✅ Admin email sent with PDF for kvitel #' + kvitelId);
+        console.log('✅ Admin email sent for kvitel #' + kvitelId);
 
         // Send confirmation to sender if email provided
         if (email) {
