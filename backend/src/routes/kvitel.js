@@ -4,15 +4,15 @@ const { pool } = require('../config/database');
 const { sendEmail } = require('../services/email');
 const PDFDocument = require('pdfkit');
 
-// Generate PDF with names table
-const generateKvitelPDF = (firstName, ben, familyName, blessingFor, additionalNames) => {
+// Generate PDF with names table (English headers, Hebrew names supported)
+const generateKvitelPDF = (kvitelId, firstName, ben, familyName, blessingFor, additionalNames) => {
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({ 
         size: 'A4', 
-        margin: 50,
+        margin: 40,
         info: {
-          Title: 'Kvitel - Prayer Request',
+          Title: `Kvitel #${kvitelId}`,
           Author: 'Biala Publishing'
         }
       });
@@ -23,66 +23,86 @@ const generateKvitelPDF = (firstName, ben, familyName, blessingFor, additionalNa
       doc.on('error', reject);
 
       // Title
-      doc.fontSize(20).font('Helvetica-Bold')
-         .text('בקשת הזכרה על ציון הרבי זצ"ל', { align: 'center' });
-      doc.moveDown(0.5);
-      doc.fontSize(14).font('Helvetica')
-         .text('Prayer Request at the Rebbe\'s Tziun', { align: 'center' });
-      doc.moveDown(2);
+      doc.fontSize(22).font('Helvetica-Bold')
+         .text('KVITEL - Prayer Request', { align: 'center' });
+      doc.moveDown(0.3);
+      doc.fontSize(12).font('Helvetica')
+         .text(`Kvitel #${kvitelId} | Date: ${new Date().toLocaleDateString('en-US')}`, { align: 'center' });
+      doc.moveDown(1.5);
 
-      // Table configuration
-      const tableTop = doc.y;
-      const colWidths = [100, 80, 100, 100, 120];
-      const headers = ['שם / Name', 'בן / Ben', 'אב/אם', 'משפחה / Family', 'ברכה ל / Blessing'];
-      const startX = 50;
-
-      // Draw header row
-      doc.font('Helvetica-Bold').fontSize(10);
-      let x = startX;
-      headers.forEach((header, i) => {
-        doc.rect(x, tableTop, colWidths[i], 25).stroke();
-        doc.text(header, x + 5, tableTop + 8, { width: colWidths[i] - 10 });
-        x += colWidths[i];
-      });
-
-      // Data rows
-      doc.font('Helvetica').fontSize(10);
-      let y = tableTop + 25;
-      
-      // Main person row
-      const allRows = [
-        { firstName, ben: ben || '', parent: ben || '', familyName: familyName || '', blessingFor: blessingFor || '' }
+      // Build all names array
+      const allNames = [
+        { 
+          name: firstName || '', 
+          ben: ben || '', 
+          family: familyName || '', 
+          blessing: blessingFor || '' 
+        }
       ];
       
-      // Add additional names
       if (additionalNames && additionalNames.length > 0) {
-        additionalNames.forEach(name => {
-          allRows.push({
-            firstName: name.firstName || '',
-            ben: name.ben || '',
-            parent: name.ben || '',
-            familyName: name.familyName || '',
-            blessingFor: name.blessingFor || ''
+        additionalNames.forEach(n => {
+          allNames.push({
+            name: n.firstName || '',
+            ben: n.ben || '',
+            family: n.familyName || '',
+            blessing: n.blessingFor || ''
           });
         });
       }
 
+      // Table configuration
+      const startX = 40;
+      const colWidths = [120, 100, 120, 170];
+      const headers = ['Name', 'Ben (son of)', 'Family Name', 'Blessing For'];
+      const rowHeight = 28;
+      let y = doc.y;
+
+      // Draw header row with background
+      doc.rect(startX, y, colWidths.reduce((a, b) => a + b, 0), rowHeight).fill('#f0f0f0').stroke('#333');
+      
+      doc.font('Helvetica-Bold').fontSize(11).fillColor('#333');
+      let x = startX;
+      headers.forEach((header, i) => {
+        doc.text(header, x + 5, y + 8, { width: colWidths[i] - 10 });
+        x += colWidths[i];
+      });
+      
+      y += rowHeight;
+
       // Draw data rows
-      allRows.forEach(row => {
+      doc.font('Helvetica').fontSize(11).fillColor('#000');
+      
+      allNames.forEach((row, rowIndex) => {
+        // Alternate row colors
+        if (rowIndex % 2 === 0) {
+          doc.rect(startX, y, colWidths.reduce((a, b) => a + b, 0), rowHeight).fill('#fafafa');
+        }
+        
+        // Draw row border
+        doc.rect(startX, y, colWidths.reduce((a, b) => a + b, 0), rowHeight).stroke('#ccc');
+        
+        // Draw cell borders and content
         x = startX;
-        const rowData = [row.firstName, row.ben, row.parent, row.familyName, row.blessingFor];
+        const rowData = [row.name, row.ben, row.family, row.blessing];
+        doc.fillColor('#000');
+        
         rowData.forEach((cell, i) => {
-          doc.rect(x, y, colWidths[i], 22).stroke();
-          doc.text(cell, x + 5, y + 6, { width: colWidths[i] - 10 });
+          // Vertical line
+          if (i > 0) {
+            doc.moveTo(x, y).lineTo(x, y + rowHeight).stroke('#ccc');
+          }
+          doc.text(cell || '-', x + 5, y + 8, { width: colWidths[i] - 10 });
           x += colWidths[i];
         });
-        y += 22;
+        
+        y += rowHeight;
       });
 
-      // Footer
-      doc.moveDown(3);
-      doc.fontSize(9).fillColor('#666')
-         .text(`Date: ${new Date().toLocaleDateString('en-US')}`, { align: 'center' });
+      // Summary
+      doc.moveDown(2);
+      doc.fontSize(10).fillColor('#666')
+         .text(`Total names: ${allNames.length}`, startX);
 
       doc.end();
     } catch (error) {
@@ -109,6 +129,7 @@ router.post('/', async (req, res) => {
 
     const kvitelId = result.rows[0].id;
     const isHebrew = language === 'he';
+    const totalNames = 1 + (additionalNames?.length || 0);
 
     // Send response immediately - don't wait for emails
     res.json({ 
@@ -120,25 +141,16 @@ router.post('/', async (req, res) => {
     setImmediate(async () => {
       try {
         // Generate PDF with names only
-        const pdfBuffer = await generateKvitelPDF(firstName, ben, familyName, blessingFor, additionalNames);
+        const pdfBuffer = await generateKvitelPDF(kvitelId, firstName, ben, familyName, blessingFor, additionalNames);
         
-        // Send email to admin with PDF attachment
+        // Send email to admin with PDF attachment - minimal body
         await sendEmail({
           to: 'jdfrid@gmail.com',
-          subject: `קוויטל חדש - ${firstName} ${familyName || ''} - Kvitel #${kvitelId}`,
+          subject: `Kvitel #${kvitelId} - ${totalNames} names`,
           html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; direction: rtl; text-align: right;">
-              <h2 style="color: #1A2035;">קוויטל חדש להזכרה</h2>
-              <p style="font-size: 16px; color: #333;">
-                התקבל קוויטל חדש עם <strong>${1 + (additionalNames?.length || 0)}</strong> שמות להזכרה.
-              </p>
-              <p style="font-size: 14px; color: #666;">
-                מצורף קובץ PDF עם טבלת השמות להדפסה.
-              </p>
-              <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
-              <p style="font-size: 12px; color: #999;">
-                תאריך: ${new Date().toLocaleDateString('he-IL')}
-              </p>
+            <div style="font-family: Arial, sans-serif; padding: 15px;">
+              <p><strong>Kvitel #${kvitelId}</strong> - ${totalNames} name(s) for prayer</p>
+              <p style="color: #666; font-size: 13px;">PDF attached with names table for printing.</p>
             </div>
           `,
           attachments: [
