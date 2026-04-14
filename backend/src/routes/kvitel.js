@@ -2,113 +2,94 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 const { sendEmail } = require('../services/email');
-const PDFDocument = require('pdfkit');
 
-// Generate PDF with names table (English headers, Hebrew names supported)
-const generateKvitelPDF = (kvitelId, firstName, ben, familyName, blessingFor, additionalNames) => {
-  return new Promise((resolve, reject) => {
-    try {
-      const doc = new PDFDocument({ 
-        size: 'A4', 
-        margin: 40,
-        info: {
-          Title: `Kvitel #${kvitelId}`,
-          Author: 'Biala Publishing'
-        }
+// Generate PDF with Hebrew support using Puppeteer
+const generateKvitelPDF = async (kvitelId, firstName, ben, familyName, blessingFor, additionalNames) => {
+  const puppeteer = require('puppeteer');
+  
+  // Build all names array
+  const allNames = [
+    { name: firstName || '', ben: ben || '', family: familyName || '', blessing: blessingFor || '' }
+  ];
+  
+  if (additionalNames && additionalNames.length > 0) {
+    additionalNames.forEach(n => {
+      allNames.push({
+        name: n.firstName || '',
+        ben: n.ben || '',
+        family: n.familyName || '',
+        blessing: n.blessingFor || ''
       });
+    });
+  }
+
+  // Generate HTML with Hebrew support
+  const html = `
+    <!DOCTYPE html>
+    <html dir="rtl" lang="he">
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700&display=swap');
+        * { font-family: 'Heebo', Arial, sans-serif; }
+        body { padding: 40px; direction: rtl; }
+        h1 { text-align: center; color: #1a2035; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th { background: #f5f5f5; padding: 12px 8px; border: 1px solid #ddd; text-align: right; font-weight: 700; }
+        td { padding: 10px 8px; border: 1px solid #ddd; text-align: right; }
+        tr:nth-child(even) { background: #fafafa; }
+        .footer { color: #999; font-size: 12px; margin-top: 20px; }
+      </style>
+    </head>
+    <body>
+      <h1>קוויטל להזכרה</h1>
+      <p class="subtitle">Kvitel #${kvitelId} | ${new Date().toLocaleDateString('he-IL')}</p>
       
-      const chunks = [];
-      doc.on('data', chunk => chunks.push(chunk));
-      doc.on('end', () => resolve(Buffer.concat(chunks)));
-      doc.on('error', reject);
-
-      // Title
-      doc.fontSize(22).font('Helvetica-Bold')
-         .text('KVITEL - Prayer Request', { align: 'center' });
-      doc.moveDown(0.3);
-      doc.fontSize(12).font('Helvetica')
-         .text(`Kvitel #${kvitelId} | Date: ${new Date().toLocaleDateString('en-US')}`, { align: 'center' });
-      doc.moveDown(1.5);
-
-      // Build all names array
-      const allNames = [
-        { 
-          name: firstName || '', 
-          ben: ben || '', 
-          family: familyName || '', 
-          blessing: blessingFor || '' 
-        }
-      ];
+      <table>
+        <thead>
+          <tr>
+            <th>שם</th>
+            <th>בן</th>
+            <th>משפחה</th>
+            <th>ברכה ל</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${allNames.map(row => `
+            <tr>
+              <td>${row.name || '-'}</td>
+              <td>${row.ben || '-'}</td>
+              <td>${row.family || '-'}</td>
+              <td>${row.blessing || '-'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
       
-      if (additionalNames && additionalNames.length > 0) {
-        additionalNames.forEach(n => {
-          allNames.push({
-            name: n.firstName || '',
-            ben: n.ben || '',
-            family: n.familyName || '',
-            blessing: n.blessingFor || ''
-          });
-        });
-      }
+      <p class="footer">סה"כ שמות: ${allNames.length}</p>
+    </body>
+    </html>
+  `;
 
-      // Table configuration
-      const startX = 40;
-      const colWidths = [120, 100, 120, 170];
-      const headers = ['Name', 'Ben (son of)', 'Family Name', 'Blessing For'];
-      const rowHeight = 28;
-      let y = doc.y;
-
-      // Draw header row with background
-      doc.rect(startX, y, colWidths.reduce((a, b) => a + b, 0), rowHeight).fill('#f0f0f0').stroke('#333');
-      
-      doc.font('Helvetica-Bold').fontSize(11).fillColor('#333');
-      let x = startX;
-      headers.forEach((header, i) => {
-        doc.text(header, x + 5, y + 8, { width: colWidths[i] - 10 });
-        x += colWidths[i];
-      });
-      
-      y += rowHeight;
-
-      // Draw data rows
-      doc.font('Helvetica').fontSize(11).fillColor('#000');
-      
-      allNames.forEach((row, rowIndex) => {
-        // Alternate row colors
-        if (rowIndex % 2 === 0) {
-          doc.rect(startX, y, colWidths.reduce((a, b) => a + b, 0), rowHeight).fill('#fafafa');
-        }
-        
-        // Draw row border
-        doc.rect(startX, y, colWidths.reduce((a, b) => a + b, 0), rowHeight).stroke('#ccc');
-        
-        // Draw cell borders and content
-        x = startX;
-        const rowData = [row.name, row.ben, row.family, row.blessing];
-        doc.fillColor('#000');
-        
-        rowData.forEach((cell, i) => {
-          // Vertical line
-          if (i > 0) {
-            doc.moveTo(x, y).lineTo(x, y + rowHeight).stroke('#ccc');
-          }
-          doc.text(cell || '-', x + 5, y + 8, { width: colWidths[i] - 10 });
-          x += colWidths[i];
-        });
-        
-        y += rowHeight;
-      });
-
-      // Summary
-      doc.moveDown(2);
-      doc.fontSize(10).fillColor('#666')
-         .text(`Total names: ${allNames.length}`, startX);
-
-      doc.end();
-    } catch (error) {
-      reject(error);
-    }
+  // Launch browser and generate PDF
+  const browser = await puppeteer.launch({
+    headless: 'new',
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
+  
+  const page = await browser.newPage();
+  await page.setContent(html, { waitUntil: 'networkidle0' });
+  
+  const pdfBuffer = await page.pdf({
+    format: 'A4',
+    printBackground: true,
+    margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' }
+  });
+  
+  await browser.close();
+  
+  return pdfBuffer;
 };
 
 // Submit kvitel (prayer request)
@@ -143,14 +124,14 @@ router.post('/', async (req, res) => {
         // Generate PDF with names only
         const pdfBuffer = await generateKvitelPDF(kvitelId, firstName, ben, familyName, blessingFor, additionalNames);
         
-        // Send email to admin with PDF attachment - minimal body
+        // Send email to admin with PDF attachment
         await sendEmail({
           to: 'jdfrid@gmail.com',
-          subject: `Kvitel #${kvitelId} - ${totalNames} names`,
+          subject: `קוויטל #${kvitelId} - ${totalNames} שמות`,
           html: `
-            <div style="font-family: Arial, sans-serif; padding: 15px;">
-              <p><strong>Kvitel #${kvitelId}</strong> - ${totalNames} name(s) for prayer</p>
-              <p style="color: #666; font-size: 13px;">PDF attached with names table for printing.</p>
+            <div style="font-family: Arial, sans-serif; padding: 15px; direction: rtl; text-align: right;">
+              <p><strong>קוויטל #${kvitelId}</strong> - ${totalNames} שמות להזכרה</p>
+              <p style="color: #666; font-size: 13px;">מצורף PDF עם טבלת השמות להדפסה.</p>
             </div>
           `,
           attachments: [
@@ -162,13 +143,13 @@ router.post('/', async (req, res) => {
         });
         console.log('✅ Admin email sent with PDF for kvitel #' + kvitelId);
 
-        // Send confirmation to sender if email provided (no PDF for user)
+        // Send confirmation to sender if email provided
         if (email) {
           await sendEmail({
             to: email,
             subject: isHebrew ? 'בקשת ההזכרה התקבלה' : 'Your Prayer Request Has Been Received',
             html: `
-              <div style="font-family: ${isHebrew ? 'Arial, sans-serif' : 'Georgia, serif'}; max-width: 600px; margin: 0 auto; padding: 20px; direction: ${isHebrew ? 'rtl' : 'ltr'};">
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; direction: ${isHebrew ? 'rtl' : 'ltr'};">
                 <h1 style="color: #1A2035;">
                   ${isHebrew ? 'בקשת ההזכרה התקבלה בהצלחה' : 'Your Prayer Request Has Been Received'}
                 </h1>
